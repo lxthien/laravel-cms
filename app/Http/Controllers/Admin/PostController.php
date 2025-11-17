@@ -1,0 +1,258 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Post;
+use App\Models\Category;
+use App\Models\Tag;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+
+class PostController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        if (!auth()->user()->can('post-list')) {
+            abort(403, 'Bạn không có quyền truy cập.');
+        }
+
+        // Admin và Editor xem tất cả posts
+        // Author chỉ xem posts của mình
+        $query = Post::with(['user', 'category']);
+
+        if (auth()->user()->hasRole('author')) {
+            $query->where('user_id', auth()->id());
+        }
+
+        $posts = $query->latest()->paginate(20);
+
+        return view('admin.posts.index', compact('posts'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        $this->authorize('post-create');
+
+        $categories = Category::where('status', 1)->orderBy('name')->get();
+        $tags = Tag::orderBy('name')->get();
+
+        return view('admin.posts.create', compact('categories', 'tags'));
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $this->authorize('post-create');
+
+        $validated = $request->validate([
+            'title' => 'required|max:255',
+            'slug' => 'nullable|unique:posts,slug',
+            'category_id' => 'required|exists:categories,id',
+            'excerpt' => 'nullable',
+            'content' => 'required',
+            'featured_image' => 'nullable|image|max:2048',
+            'status' => 'required|in:draft,published,pending',
+            'published_at' => 'nullable|date',
+            'meta_title' => 'nullable|max:255',
+            'meta_description' => 'nullable',
+            'meta_keywords' => 'nullable',
+            'tags' => 'nullable|array',
+        ]);
+
+        // Tạo slug tự động
+        if (empty($validated['slug'])) {
+            $validated['slug'] = Str::slug($validated['title']);
+        }
+
+        // Upload featured image
+        if ($request->hasFile('featured_image')) {
+            $validated['featured_image'] = $request->file('featured_image')
+                ->store('posts', 'public');
+        }
+
+        // Set user_id
+        $validated['user_id'] = auth()->id();
+
+        // Set published_at nếu status là published
+        if ($validated['status'] === 'published' && empty($validated['published_at'])) {
+            $validated['published_at'] = now();
+        }
+
+        // Tạo post
+        $post = Post::create($validated);
+
+        // Xử lý Tags (quan trọng)
+        if ($request->has('tags')) {
+            $tagIds = $this->syncTags($request->tags);
+            $post->tags()->attach($tagIds);
+        }
+
+        return redirect()
+            ->route('admin.posts.index')
+            ->with('success', 'Bài viết đã được tạo thành công!');
+    }
+
+    /**
+     * Sync tags - tạo mới nếu chưa có, trả về array of IDs
+     */
+    private function syncTags($tags)
+    {
+        $tagIds = [];
+        
+        foreach ($tags as $tag) {
+            // Kiểm tra xem là tag mới hay tag có sẵn
+            if (strpos($tag, 'new:') === 0) {
+                // Tag mới - tạo mới
+                $tagName = substr($tag, 4); // Bỏ prefix "new:"
+                $tagName = trim($tagName);
+                
+                // Kiểm tra xem tag đã tồn tại chưa (case-insensitive)
+                $existingTag = Tag::whereRaw('LOWER(name) = ?', [strtolower($tagName)])->first();
+                
+                if ($existingTag) {
+                    $tagIds[] = $existingTag->id;
+                } else {
+                    // Tạo tag mới
+                    $newTag = Tag::create([
+                        'name' => $tagName,
+                        'slug' => Str::slug($tagName)
+                    ]);
+                    $tagIds[] = $newTag->id;
+                }
+            } else {
+                // Tag có sẵn - chỉ cần thêm ID
+                $tagIds[] = $tag;
+            }
+        }
+        
+        return $tagIds;
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Post $post)
+    {
+        $this->authorize('post-list');
+
+        $post->load(['user', 'category', 'tags', 'comments']);
+
+        return view('admin.posts.show', compact('post'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Post $post)
+    {
+        // Kiểm tra quyền
+        if (auth()->user()->hasRole('author') && $post->user_id !== auth()->id()) {
+            abort(403, 'Bạn không có quyền sửa bài viết này.');
+        }
+
+        $this->authorize('post-edit');
+
+        $categories = Category::where('status', 1)->orderBy('name')->get();
+        $tags = Tag::orderBy('name')->get();
+
+        return view('admin.posts.edit', compact('post', 'categories', 'tags'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Post $post)
+    {
+        // Kiểm tra quyền
+        if (auth()->user()->hasRole('author') && $post->user_id !== auth()->id()) {
+            abort(403, 'Bạn không có quyền sửa bài viết này.');
+        }
+
+        $this->authorize('post-edit');
+
+        $validated = $request->validate([
+            'title' => 'required|max:255',
+            'slug' => 'nullable|unique:posts,slug,' . $post->id,
+            'category_id' => 'required|exists:categories,id',
+            'excerpt' => 'nullable',
+            'content' => 'required',
+            'featured_image' => 'nullable|image|max:2048',
+            'status' => 'required|in:draft,published,pending',
+            'published_at' => 'nullable|date',
+            'meta_title' => 'nullable|max:255',
+            'meta_description' => 'nullable',
+            'meta_keywords' => 'nullable',
+            'tags' => 'nullable|array',
+        ]);
+
+        // Update slug
+        if (empty($validated['slug'])) {
+            $validated['slug'] = Str::slug($validated['title']);
+        }
+
+        // Upload new featured image
+        if ($request->hasFile('featured_image')) {
+            // Delete old image
+            if ($post->featured_image) {
+                Storage::disk('public')->delete($post->featured_image);
+            }
+            
+            $validated['featured_image'] = $request->file('featured_image')
+                ->store('posts', 'public');
+        }
+
+        // Update published_at
+        if ($validated['status'] === 'published' && empty($post->published_at)) {
+            $validated['published_at'] = now();
+        }
+
+        // Update post
+        $post->update($validated);
+
+        // Sync tags (sử dụng sync thay vì attach)
+        if ($request->has('tags')) {
+            $tagIds = $this->syncTags($request->tags);
+            $post->tags()->sync($tagIds);  // sync thay vì attach
+        } else {
+            $post->tags()->detach();  // Xóa tất cả tags nếu không chọn
+        }
+
+        return redirect()
+            ->route('admin.posts.index')
+            ->with('success', 'Bài viết đã được cập nhật thành công!');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Post $post)
+    {
+        // Kiểm tra quyền
+        if (auth()->user()->hasRole('author') && $post->user_id !== auth()->id()) {
+            abort(403, 'Bạn không có quyền xóa bài viết này.');
+        }
+
+        $this->authorize('post-delete');
+
+        // Delete featured image
+        if ($post->featured_image) {
+            Storage::disk('public')->delete($post->featured_image);
+        }
+
+        $post->delete();
+
+        return redirect()
+            ->route('admin.posts.index')
+            ->with('success', 'Bài viết đã được xóa thành công!');
+    }
+}

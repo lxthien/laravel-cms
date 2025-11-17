@@ -1,0 +1,184 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Category;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+
+class CategoryController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        // Kiểm tra permission
+        if (!auth()->user()->can('category-list')) {
+            abort(403, 'Bạn không có quyền truy cập.');
+        }
+
+        // Lấy tất cả categories với parent relationship
+        $categories = Category::with('parent')
+                              ->orderBy('order')
+                              ->paginate(20);
+
+        return view('admin.categories.index', compact('categories'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        $this->authorize('category-create');
+
+        // Lấy tất cả categories để làm parent
+        $parentCategories = Category::whereNull('parent_id')
+                                    ->orderBy('name')
+                                    ->get();
+
+        return view('admin.categories.create', compact('parentCategories'));
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $this->authorize('category-create');
+
+        // Validation
+        $validated = $request->validate([
+            'name' => 'required|max:255',
+            'slug' => 'nullable|unique:categories,slug',
+            'parent_id' => 'nullable|exists:categories,id',
+            'description' => 'nullable',
+            'image' => 'nullable|image|max:2048',
+            'meta_title' => 'nullable|max:255',
+            'meta_description' => 'nullable',
+            'order' => 'nullable|integer',
+            'status' => 'boolean',
+        ]);
+
+        // Tạo slug tự động nếu không có
+        if (empty($validated['slug'])) {
+            $validated['slug'] = Str::slug($validated['name']);
+        }
+
+        // Upload image nếu có
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('categories', 'public');
+            $validated['image'] = $imagePath;
+        }
+
+        // Tạo category
+        Category::create($validated);
+
+        return redirect()
+            ->route('admin.categories.index')
+            ->with('success', 'Danh mục đã được tạo thành công!');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Category $category)
+    {
+        $this->authorize('category-list');
+
+        // Load posts trong category
+        $category->load(['posts' => function($query) {
+            $query->latest()->take(10);
+        }]);
+
+        return view('admin.categories.show', compact('category'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Category $category)
+    {
+        $this->authorize('category-edit');
+
+        // Lấy parent categories (không bao gồm chính nó và con của nó)
+        $parentCategories = Category::whereNull('parent_id')
+                                    ->where('id', '!=', $category->id)
+                                    ->orderBy('name')
+                                    ->get();
+
+        return view('admin.categories.edit', compact('category', 'parentCategories'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Category $category)
+    {
+        $this->authorize('category-edit');
+
+        // Validation
+        $validated = $request->validate([
+            'name' => 'required|max:255',
+            'slug' => 'nullable|unique:categories,slug,' . $category->id,
+            'parent_id' => 'nullable|exists:categories,id',
+            'description' => 'nullable',
+            'image' => 'nullable|image|max:2048',
+            'meta_title' => 'nullable|max:255',
+            'meta_description' => 'nullable',
+            'order' => 'nullable|integer',
+            'status' => 'boolean',
+        ]);
+
+        // Update slug nếu cần
+        if (empty($validated['slug'])) {
+            $validated['slug'] = Str::slug($validated['name']);
+        }
+
+        // Upload image mới nếu có
+        if ($request->hasFile('image')) {
+            // Xóa image cũ
+            if ($category->image) {
+                \Storage::disk('public')->delete($category->image);
+            }
+            
+            $imagePath = $request->file('image')->store('categories', 'public');
+            $validated['image'] = $imagePath;
+        }
+
+        // Update category
+        $category->update($validated);
+
+        return redirect()
+            ->route('admin.categories.index')
+            ->with('success', 'Danh mục đã được cập nhật thành công!');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Category $category)
+    {
+        $this->authorize('category-delete');
+
+        // Kiểm tra xem có posts trong category không
+        if ($category->posts()->count() > 0) {
+            return redirect()
+                ->route('admin.categories.index')
+                ->with('error', 'Không thể xóa danh mục có bài viết!');
+        }
+
+        // Xóa image nếu có
+        if ($category->image) {
+            \Storage::disk('public')->delete($category->image);
+        }
+
+        $category->delete();
+
+        return redirect()
+            ->route('admin.categories.index')
+            ->with('success', 'Danh mục đã được xóa thành công!');
+    }
+}
