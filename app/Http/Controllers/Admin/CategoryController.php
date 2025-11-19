@@ -20,9 +20,7 @@ class CategoryController extends Controller
         }
 
         // Lấy tất cả categories với parent relationship
-        $categories = Category::with('parent')
-                              ->orderBy('order')
-                              ->paginate(20);
+        $categories = Category::with('childrenRecursive')->whereNull('parent_id')->orderBy('order')->get();
 
         return view('admin.categories.index', compact('categories'));
     }

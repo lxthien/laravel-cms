@@ -6,6 +6,8 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class AdminUserSeeder extends Seeder
 {
@@ -23,6 +25,7 @@ class AdminUserSeeder extends Seeder
             'status' => 1,
         ]);
         $admin->assignRole('admin');
+        $admin->update(['role' => 'admin']);
 
         // Tạo Editor User
         $editor = User::create([
@@ -33,6 +36,7 @@ class AdminUserSeeder extends Seeder
             'status' => 1,
         ]);
         $editor->assignRole('editor');
+        $editor->update('editor');
 
         // Tạo Author User
         $author = User::create([
@@ -43,6 +47,7 @@ class AdminUserSeeder extends Seeder
             'status' => 1,
         ]);
         $author->assignRole('author');
+        $author->update('author');
 
         // Tạo Subscriber User
         $subscriber = User::create([
@@ -53,5 +58,6 @@ class AdminUserSeeder extends Seeder
             'status' => 1,
         ]);
         $subscriber->assignRole('subscriber');
+        $subscriber->update('subscriber');
     }
 }

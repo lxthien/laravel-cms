@@ -34,26 +34,10 @@
                 @endauth
             </div>
         </div>
-        
+
         <!-- Main Navigation -->
         <nav class="py-4">
-            <ul class="flex gap-6">
-                <li>
-                    <a href="{{ route('home') }}" 
-                       class="text-gray-700 hover:text-blue-600 font-medium {{ request()->routeIs('home') ? 'text-blue-600' : '' }}">
-                        Trang Chủ
-                    </a>
-                </li>
-                
-                @foreach(\App\Models\Category::where('status', 1)->whereNull('parent_id')->orderBy('order')->limit(6)->get() as $category)
-                <li>
-                    <a href="{{ route('category.show', $category->slug) }}" 
-                       class="text-gray-700 hover:text-blue-600 font-medium">
-                        {{ $category->name }}
-                    </a>
-                </li>
-                @endforeach
-            </ul>
+            <x-menu :items="$headerMenu ? $headerMenu->items : collect()" />
         </nav>
     </div>
 </header>

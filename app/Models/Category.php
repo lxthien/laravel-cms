@@ -68,4 +68,9 @@ class Category extends Model
     {
         return $query->whereNull('parent_id');
     }
+
+    public function childrenRecursive()
+    {
+        return $this->children()->with('childrenRecursive');
+    }
 }

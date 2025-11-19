@@ -23,7 +23,17 @@ class PostController extends Controller
             ->where('id', '!=', $post->id)
             ->take(4)
             ->get();
+
+        // Only comments with status = 'approved' and parent_id = null (root comments)
+        $comments = $post->comments()
+            ->whereNull('parent_id')
+            ->approved()
+            ->with(['replies' => function($q) {
+                $q->approved();
+            }, 'user'])
+            ->orderBy('created_at')
+            ->get();
         
-        return view('frontend.posts.show', compact('post', 'relatedPosts'));
+        return view('frontend.posts.show', compact('post', 'relatedPosts', 'comments'));
     }
 }

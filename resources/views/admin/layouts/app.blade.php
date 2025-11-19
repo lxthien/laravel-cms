@@ -36,9 +36,39 @@
                     Bài Viết
                 </a>
                 @endcan
+
+                @can('post-list')
+                <a href="{{ route('admin.comments.index') }}" class="block px-4 py-2 hover:bg-gray-700">
+                    Bình Luận
+                </a>
+                @endcan
+
+                @can('post-list')
+                <a href="{{ route('admin.contacts.index') }}" class="block px-4 py-2 hover:bg-gray-700">
+                    Liên Hệ
+                </a>
+                @endcan
+
+                @can('post-list')
+                <a href="{{ route('admin.menus.index') }}" class="block px-4 py-2 hover:bg-gray-700">
+                    Menu
+                </a>
+                @endcan
+
+                @can('post-list')
+                <a href="{{ route('admin.menu-items.index') }}" class="block px-4 py-2 hover:bg-gray-700">
+                    Menu Items
+                </a>
+                @endcan
+
+                @role('admin')
+                <a href="{{ route('admin.settings.index') }}" class="block px-4 py-2 hover:bg-gray-700">
+                    Quản Lý Cài Đặt
+                </a>
+                @endrole
                 
                 @role('admin')
-                <a href="#" class="block px-4 py-2 hover:bg-gray-700">
+                <a href="{{ route('admin.users.index') }}" class="block px-4 py-2 hover:bg-gray-700">
                     Quản Lý Users
                 </a>
                 @endrole

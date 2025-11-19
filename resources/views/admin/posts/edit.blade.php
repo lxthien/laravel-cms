@@ -229,10 +229,25 @@ $(document).ready(function() {
         tokenSeparators: [','],
         placeholder: "Chọn hoặc nhập tags...",
         allowClear: true,
+        maximumSelectionLength: 10,  // Tối đa 10 tags
+
         createTag: function (params) {
             var term = $.trim(params.term);
             
-            if (term === '' || term.length > 50) {
+            // Không cho phép tag rỗng
+            if (term === '') {
+                return null;
+            }
+
+            // Giới hạn độ dài
+            if (term.length < 2 || term.length > 50) {
+                alert('Tag phải từ 2-50 ký tự!');
+                return null;
+            }
+
+            // Chỉ cho phép chữ cái, số, gạch ngang
+            if (!/^[a-zA-Z0-9\s\-_]+$/.test(term)) {
+                alert('Tag chỉ được chứa chữ cái, số và gạch ngang!');
                 return null;
             }
             

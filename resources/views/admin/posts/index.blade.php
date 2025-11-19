@@ -61,8 +61,7 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         <div class="flex gap-2">
                             @can('post-edit')
-                            <a href="{{ route('admin.posts.edit', $post) }}" 
-                               class="text-blue-600 hover:text-blue-900">
+                            <a href="{{ route('admin.posts.edit', $post) }}" class="text-blue-600 hover:text-blue-900">
                                 Sửa
                             </a>
                             @endcan

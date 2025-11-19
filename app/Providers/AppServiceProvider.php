@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 
+use App\Models\Menu;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -19,6 +21,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        view()->composer('*', function ($view) {
+            $headerMenu = Menu::with('items.children')->where('location', 'header')->first();
+            $footerMenu = Menu::with('items.children')->where('location', 'footer')->first();
+            
+            // Truyền vào view toàn cục
+            $view->with(compact('headerMenu', 'footerMenu'));
+        });
     }
 }

@@ -235,20 +235,29 @@
 $(document).ready(function() {
     $('#tags').select2({
         tags: true,                          // Enable tagging
-        tokenSeparators: [',', ' '],        // Separate by comma or space
+        tokenSeparators: [','],        // Separate by comma or space
         placeholder: "Chọn hoặc nhập tags...",
         allowClear: true,
+        maximumSelectionLength: 10,  // Tối đa 10 tags
         
         // Customize new tag creation
         createTag: function (params) {
             var term = $.trim(params.term);
             
+            // Không cho phép tag rỗng
             if (term === '') {
                 return null;
             }
             
-            // Validate tag length
-            if (term.length > 50) {
+            // Giới hạn độ dài
+            if (term.length < 2 || term.length > 50) {
+                alert('Tag phải từ 2-50 ký tự!');
+                return null;
+            }
+
+            // Chỉ cho phép chữ cái, số, gạch ngang
+            if (!/^[a-zA-Z0-9\s\-_]+$/.test(term)) {
+                alert('Tag chỉ được chứa chữ cái, số và gạch ngang!');
                 return null;
             }
             

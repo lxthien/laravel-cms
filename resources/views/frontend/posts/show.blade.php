@@ -60,7 +60,7 @@
         <h3 class="font-bold mb-3">Tags:</h3>
         <div class="flex flex-wrap gap-2">
             @foreach($post->tags as $tag)
-            <a href="{{ route('tag.show', $tag->slug) }}" 
+            <a href="#" 
                class="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm hover:bg-blue-200">
                 #{{ $tag->name }}
             </a>
@@ -68,6 +68,30 @@
         </div>
     </div>
     @endif
+
+    <h4 class="font-bold text-xl mb-2">Gửi bình luận</h4>
+    <form method="POST" action="{{ route('comment.store', $post) }}" id="commentForm">
+        @csrf
+        @guest
+            <input name="name" required placeholder="Tên" class="border rounded p-2 w-full mb-2">
+            <input name="email" type="email" required placeholder="Email" class="border rounded p-2 w-full mb-2">
+        @endguest
+        <input type="hidden" name="parent_id" id="parent_id" value="">
+        <textarea name="content" required class="border rounded p-2 w-full mb-2" rows="4" placeholder="Nhập nội dung..."></textarea>
+        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Gửi bình luận</button>
+    </form>
+    <script>
+    document.querySelectorAll('.reply-btn').forEach(btn => {
+        btn.onclick = function() {
+            document.getElementById('parent_id').value = btn.getAttribute('data-id');
+            window.scrollTo(0, document.getElementById('commentForm').offsetTop - 100);
+        }
+    });
+    </script>
+
+    <h3 class="text-lg font-bold mb-4">Bình luận</h3>
+    @include('frontend.partials.comments', ['comments' => $comments])
+
 </article>
 
 <!-- Related Posts -->

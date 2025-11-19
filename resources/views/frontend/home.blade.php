@@ -1,6 +1,6 @@
 @extends('frontend.layouts.app')
 
-@section('title', 'Trang Chủ')
+@section('title', setting('page_title'))
 
 @section('content')
 <!-- Featured Posts -->

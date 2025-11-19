@@ -43,7 +43,7 @@
     <h3 class="text-xl font-bold mb-4">Tags</h3>
     <div class="flex flex-wrap gap-2">
         @foreach(\App\Models\Tag::withCount('posts')->orderBy('name')->get() as $tag)
-        <a href="{{ route('tag.show', $tag->slug) }}" 
+        <a href="#"
            class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-blue-100 hover:text-blue-600">
             {{ $tag->name }}
         </a>

@@ -6,6 +6,11 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\PostController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\CommentController;
+use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\ContactRequestController;
+use App\Http\Controllers\Admin\MenuController;
+use App\Http\Controllers\Admin\MenuItemController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,10 +27,12 @@ Route::get('/', [App\Http\Controllers\Frontend\HomeController::class, 'index'])-
 Route::get('/tim-kiem', [App\Http\Controllers\Frontend\SearchController::class, 'index'])->name('search');
 Route::get('/bai-viet/{slug}', [App\Http\Controllers\Frontend\PostController::class, 'show'])->name('post.show');
 Route::get('/danh-muc/{slug}', [App\Http\Controllers\Frontend\CategoryController::class, 'show'])->name('category.show');
+Route::post('/bai-viet/{post}/comment', [App\Http\Controllers\Frontend\CommentController::class, 'store'])->name('comment.store');
+
+Route::get('/lien-he', [App\Http\Controllers\Frontend\ContactController::class, 'showForm'])->name('contact');
+Route::post('/lien-he', [App\Http\Controllers\Frontend\ContactController::class, 'submit'])->name('contact.submit');
 
 Auth::routes();
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 // Admin routes - Chỉ dành cho users đã login và có role
 Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
@@ -38,6 +45,19 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
 
     // Posts
     Route::resource('posts', PostController::class);
+
+    Route::resource('comments', CommentController::class)->except('create','store','edit','update','show');
+    Route::post('comments/{id}/approve', [CommentController::class, 'approve'])->name('comments.approve');
+
+    Route::resource('contacts', ContactRequestController::class)->only(['index','show','destroy']);
+
+    Route::resource('menus', MenuController::class);
+    Route::resource('menu-items', MenuItemController::class);
+
+    // Setting
+    Route::resource('settings', SettingController::class)->only([
+        'index', 'edit', 'update'
+    ]);
     
     // User Management - Chỉ admin
     Route::middleware(['role:admin'])->group(function () {

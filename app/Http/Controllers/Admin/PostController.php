@@ -108,6 +108,11 @@ class PostController extends Controller
     private function syncTags($tags)
     {
         $tagIds = [];
+
+        // Giới hạn số lượng tags
+        if (count($tags) > 10) {
+            throw new \Exception('Tối đa 10 tags cho một bài viết!');
+        }
         
         foreach ($tags as $tag) {
             // Kiểm tra xem là tag mới hay tag có sẵn
@@ -115,6 +120,16 @@ class PostController extends Controller
                 // Tag mới - tạo mới
                 $tagName = substr($tag, 4); // Bỏ prefix "new:"
                 $tagName = trim($tagName);
+
+                // Validate độ dài
+                if (strlen($tagName) < 2 || strlen($tagName) > 50) {
+                    continue; // Skip tag không hợp lệ
+                }
+
+                // Validate ký tự
+                if (!preg_match('/^[a-zA-Z0-9\s\-_]+$/', $tagName)) {
+                    continue;
+                }
                 
                 // Kiểm tra xem tag đã tồn tại chưa (case-insensitive)
                 $existingTag = Tag::whereRaw('LOWER(name) = ?', [strtolower($tagName)])->first();
