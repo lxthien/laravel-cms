@@ -4,7 +4,7 @@
     <ul class="space-y-4">
         @foreach(\App\Models\Post::published()->latest()->take(5)->get() as $post)
         <li class="border-b pb-3">
-            <a href="{{ route('post.show', $post->slug) }}" class="hover:text-blue-600">
+            <a href="{{ url($post->slug) }}" class="hover:text-blue-600">
                 <div class="flex gap-3">
                     @if($post->featured_image)
                     <img src="{{ asset('storage/' . $post->featured_image) }}" 
@@ -28,7 +28,7 @@
     <ul class="space-y-2">
         @foreach(\App\Models\Category::withCount('posts')->where('status', 1)->orderBy('name')->get() as $category)
         <li>
-            <a href="{{ route('category.show', $category->slug) }}" 
+            <a href="{{ url($category->full_path) }}" 
                class="flex justify-between items-center text-gray-700 hover:text-blue-600">
                 <span>{{ $category->name }}</span>
                 <span class="text-sm text-gray-500">({{ $category->posts_count }})</span>

@@ -7,11 +7,26 @@ use App\Models\Category;
 
 class CategoryController extends Controller
 {
-    public function show($slug)
+    public function show(Category $category)
     {
-        $category = Category::where('slug', $slug)
-            ->where('status', 1)
-            ->firstOrFail();
+        // 1. Start with Home
+        $breadcrumbs = [
+            ['title' => 'Trang Chủ', 'url' => route('home')]
+        ];
+
+        // 2. Get category parents
+        $parents = $category->getBreadcrumb();
+        
+        // 3. Loop through parents (including self) to build breadcrumb data
+        foreach ($parents as $cat) {
+            // If it's the last item (current page), URL can be empty or #
+            $isLast = $cat->id === $category->id;
+            
+            $breadcrumbs[] = [
+                'title' => $cat->name,
+                'url'   => $isLast ? '' : url($cat->full_path)
+            ];
+        }
         
         $posts = $category->posts()
             ->published()
@@ -19,6 +34,6 @@ class CategoryController extends Controller
             ->latest('published_at')
             ->paginate(12);
         
-        return view('frontend.categories.show', compact('category', 'posts'));
+        return view('frontend.categories.show', compact('category', 'posts', 'breadcrumbs'));
     }
 }

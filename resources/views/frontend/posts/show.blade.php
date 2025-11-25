@@ -5,20 +5,15 @@
 @section('meta_keywords', $post->meta_keywords)
 
 @section('breadcrumb')
-<div class="bg-white border-b">
-    <div class="container mx-auto px-4 py-3">
-        <nav class="text-sm">
-            <a href="{{ route('home') }}" class="text-blue-600 hover:underline">Trang Chủ</a>
-            <span class="mx-2">/</span>
-            <a href="{{ route('category.show', $post->category->slug) }}" 
-               class="text-blue-600 hover:underline">
-                {{ $post->category->name }}
-            </a>
-            <span class="mx-2">/</span>
-            <span class="text-gray-600">{{ $post->title }}</span>
-        </nav>
-    </div>
-</div>
+    @php
+        $breadcrumbs = [['title' => 'Trang Chủ', 'url' => url('/')]];
+        foreach($post->getBreadcrumb() as $parent) {
+            $breadcrumbs[] = ['title' => $parent->name, 'url' => url($parent->full_path)];
+        }
+        $breadcrumbs[] = ['title' => $post->title, 'url' => ''];
+    @endphp
+
+    @include('frontend.partials._breadcrumb', compact('breadcrumbs'))
 @endsection
 
 @section('content')

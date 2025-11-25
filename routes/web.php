@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\ContactRequestController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\MenuItemController;
+use CKSource\CKFinderBridge\Controller\CKFinderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,14 +26,22 @@ use App\Http\Controllers\Admin\MenuItemController;
 
 Route::get('/', [App\Http\Controllers\Frontend\HomeController::class, 'index'])->name('home');
 Route::get('/tim-kiem', [App\Http\Controllers\Frontend\SearchController::class, 'index'])->name('search');
-Route::get('/bai-viet/{slug}', [App\Http\Controllers\Frontend\PostController::class, 'show'])->name('post.show');
-Route::get('/danh-muc/{slug}', [App\Http\Controllers\Frontend\CategoryController::class, 'show'])->name('category.show');
+//Route::get('/bai-viet/{slug}', [App\Http\Controllers\Frontend\PostController::class, 'show'])->name('post.show');
+//Route::get('/danh-muc/{slug}', [App\Http\Controllers\Frontend\CategoryController::class, 'show'])->name('category.show');
 Route::post('/bai-viet/{post}/comment', [App\Http\Controllers\Frontend\CommentController::class, 'store'])->name('comment.store');
 
 Route::get('/lien-he', [App\Http\Controllers\Frontend\ContactController::class, 'showForm'])->name('contact');
 Route::post('/lien-he', [App\Http\Controllers\Frontend\ContactController::class, 'submit'])->name('contact.submit');
 
 Auth::routes();
+
+Route::group(['prefix' => 'ckfinder', 'middleware' => ['web', 'auth', 'ckfinder']], function () {
+    Route::any('connector', [CKFinderController::class, 'requestAction'])
+        ->name('ckfinder_connector');
+
+    Route::any('browser', [CKFinderController::class, 'browserAction'])
+        ->name('ckfinder_browser');
+});
 
 // Admin routes - Chỉ dành cho users đã login và có role
 Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
@@ -79,3 +88,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::get('posts/create', [PostController::class, 'create'])->name('posts.create');
     });
 });
+
+// --- Route động cho Post và Category (đặt ở cuối cùng) ---
+Route::get('{path}', [App\Http\Controllers\Frontend\DynamicRouteController::class, 'handle'])
+    ->where('path', '.*') // Cho phép `path` chứa dấu gạch chéo `/`
+    ->name('dynamic.resolve');

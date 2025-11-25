@@ -102,4 +102,20 @@ class Post extends Model
                $this->published_at && 
                $this->published_at <= now();
     }
+
+    /**
+     * Lấy tất cả category cha để làm breadcrumb
+     */
+    public function getBreadcrumb()
+    {
+        $breadcrumb = [];
+        $category = $this->category;
+
+        while ($category) {
+            array_unshift($breadcrumb, $category); // Thêm vào đầu mảng
+            $category = $category->parent;
+        }
+
+        return $breadcrumb;
+    }
 }

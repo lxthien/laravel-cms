@@ -48,7 +48,7 @@
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="tinymce">
                         Nội Dung <span class="text-red-500">*</span>
                     </label>
-                    <textarea id="tinymce" name="content">{{ old('content') }}</textarea>
+                    <textarea id="editor" name="content">{{ old('content') }}</textarea>
                     @error('content')
                         <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
                     @enderror
@@ -171,46 +171,6 @@
     </form>
 </div>
 @endsection
-
-@push('scripts')
-<script src="https://cdn.tiny.cloud/1/8gma6mvzjqqnn5p4u29fi9ewfme5p5kzrmqatg4x6wpwyjxr/tinymce/8/tinymce.min.js" referrerpolicy="origin" crossorigin="anonymous"></script>
-<script>
-    tinymce.init({
-        selector: '#tinymce',
-        height: 500,
-        menubar: true,
-        plugins: [
-            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-            'insertdatetime', 'media', 'table', 'help', 'wordcount'
-        ],
-        toolbar: 'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
-        content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-        
-        // Validation khi submit form
-        setup: function(editor) {
-            editor.on('init', function() {
-                // Khi form submit, copy nội dung từ TinyMCE vào textarea
-                const form = document.querySelector('form');
-                form.addEventListener('submit', function(e) {
-                    // Lấy nội dung từ TinyMCE
-                    const content = tinymce.get('tinymce').getContent();
-                    
-                    // Kiểm tra nếu trống
-                    if (!content.trim()) {
-                        e.preventDefault();
-                        alert('Vui lòng nhập nội dung bài viết!');
-                        return false;
-                    }
-                    
-                    // Copy vào textarea
-                    document.getElementById('tinymce').value = content;
-                });
-            });
-        }
-    });
-</script>
-@endpush
 
 @push('styles')
 <style>

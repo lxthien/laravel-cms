@@ -3,14 +3,12 @@
 @section('title', $category->meta_title ?: $category->name)
 @section('meta_description', $category->meta_description ?: $category->description)
 
-@section('content')
-<div class="mb-6">
-    <h1 class="text-3xl font-bold mb-2">{{ $category->name }}</h1>
-    @if($category->description)
-    <p class="text-gray-600">{{ $category->description }}</p>
-    @endif
-</div>
+@section('breadcrumb')
+    {{-- Include Breadcrumb --}}
+    @include('frontend.partials._breadcrumb', ['breadcrumbs' => $breadcrumbs])
+@endsection
 
+@section('content')
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     @forelse($posts as $post)
     <article class="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition">
@@ -28,7 +26,7 @@
             </div>
             
             <h3 class="text-xl font-bold mb-2">
-                <a href="{{ route('post.show', $post->slug) }}" 
+                <a href="{{ url($post->slug) }}" 
                    class="hover:text-blue-600">
                     {{ $post->title }}
                 </a>

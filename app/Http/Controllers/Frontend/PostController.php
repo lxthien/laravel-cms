@@ -7,12 +7,12 @@ use App\Models\Post;
 
 class PostController extends Controller
 {
-    public function show($slug)
+    public function show(Post $post)
     {
-        $post = Post::where('slug', $slug)
+        /* $post = Post::where('slug', $slug)
             ->published()
             ->with(['category', 'user', 'tags', 'comments.user'])
-            ->firstOrFail();
+            ->firstOrFail(); */
         
         // Tăng view count
         $post->incrementViewCount();

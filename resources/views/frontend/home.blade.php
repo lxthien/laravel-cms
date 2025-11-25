@@ -10,7 +10,7 @@
         @foreach($featuredPosts as $post)
         <article class="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition">
             @if($post->featured_image)
-            <a href="{{ route('post.show', $post->slug) }}">
+            <a href="{{ url($post->slug) }}">
                 <img src="{{ asset('storage/' . $post->featured_image) }}" 
                      alt="{{ $post->title }}"
                      class="w-full h-48 object-cover">
@@ -19,7 +19,7 @@
             
             <div class="p-4">
                 <div class="text-sm text-gray-500 mb-2">
-                    <a href="{{ route('category.show', $post->category->slug) }}" 
+                    <a href="{{ url($post->category->full_path) }}" 
                        class="text-blue-600 hover:underline">
                         {{ $post->category->name }}
                     </a>
@@ -28,7 +28,7 @@
                 </div>
                 
                 <h3 class="text-xl font-bold mb-2">
-                    <a href="{{ route('post.show', $post->slug) }}" 
+                    <a href="{{ url($post->slug) }}" 
                        class="hover:text-blue-600">
                         {{ $post->title }}
                     </a>
