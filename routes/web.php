@@ -51,6 +51,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
 
     // Categories CRUD
     Route::resource('categories', CategoryController::class);
+    // Route mới để update order
+    Route::post('categories/{category}/update-order', [CategoryController::class, 'updateOrder'])
+        ->name('categories.update-order');
+    // Update status (mới)
+    Route::post('categories/{category}/update-status', [CategoryController::class, 'updateStatus'])
+        ->name('categories.update-status');
 
     // Posts
     Route::resource('posts', PostController::class);

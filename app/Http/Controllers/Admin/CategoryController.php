@@ -179,4 +179,54 @@ class CategoryController extends Controller
             ->route('admin.categories.index')
             ->with('success', 'Danh mục đã được xóa thành công!');
     }
+
+    /**
+     * Update category order via AJAX
+     */
+    public function updateOrder(Request $request, Category $category)
+    {
+        $validated = $request->validate([
+            'order' => 'required|integer|min:0'
+        ]);
+        
+        try {
+            $category->order = $validated['order'];
+            $category->save();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Cập nhật thứ tự thành công!'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update category status via AJAX
+     */
+    public function updateStatus(Request $request, Category $category)
+    {
+        $validated = $request->validate([
+            'status' => 'required|boolean'
+        ]);
+        
+        try {
+            $category->status = $validated['status'];
+            $category->save();
+            
+            return response()->json([
+                'success' => true,
+                'message' => $validated['status'] ? 'Đã kích hoạt danh mục!' : 'Đã ẩn danh mục!'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
