@@ -60,6 +60,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
 
     // Posts
     Route::resource('posts', PostController::class);
+    Route::get('/posts/category/{category}', [PostController::class, 'byCategory'])
+        ->name('posts.by-category');
 
     Route::resource('comments', CommentController::class)->except('create','store','edit','update','show');
     Route::post('comments/{id}/approve', [CommentController::class, 'approve'])->name('comments.approve');

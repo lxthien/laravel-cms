@@ -26,7 +26,7 @@
             </div>
             
             <h3 class="text-xl font-bold mb-2">
-                <a href="{{ url($post->slug) }}" 
+                <a href="{{ url($post->full_path) }}" 
                    class="hover:text-blue-600">
                     {{ $post->title }}
                 </a>

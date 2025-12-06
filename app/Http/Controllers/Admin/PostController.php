@@ -296,4 +296,53 @@ class PostController extends Controller
             ->route('admin.posts.index')
             ->with('success', 'Bài viết đã được xóa thành công!');
     }
+
+    /**
+     * Hiển thị danh sách posts theo category
+     */
+    public function byCategory(Category $category, Request $request)
+    {
+        // Query posts thuộc category này
+        $query = Post::select('posts.*')
+            ->whereHas('categories', function($q) use ($category) {
+                $q->where('categories.id', $category->id);
+            })
+            ->with(['user', 'categories']);
+        
+        // Filter by status nếu có
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
+        }
+        
+        // Search nếu có
+        if ($request->has('search') && $request->search != '') {
+            $query->where(function($q) use ($request) {
+                $q->where('title', 'like', '%' . $request->search . '%')
+                  ->orWhere('content', 'like', '%' . $request->search . '%');
+            });
+        }
+        
+        $posts = $query->latest('posts.created_at')->paginate(20);
+        
+        // Breadcrumb để biết đang ở category nào
+        $breadcrumbs = $this->getCategoryBreadcrumbs($category);
+        
+        return view('admin.posts.by-category', compact('category', 'posts', 'breadcrumbs'));
+    }
+    
+    /**
+     * Lấy breadcrumb cho category
+     */
+    private function getCategoryBreadcrumbs(Category $category)
+    {
+        $breadcrumbs = [];
+        $current = $category;
+        
+        while ($current) {
+            array_unshift($breadcrumbs, $current);
+            $current = $current->parent;
+        }
+        
+        return $breadcrumbs;
+    }
 }
