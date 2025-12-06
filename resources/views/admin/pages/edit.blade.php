@@ -1,0 +1,284 @@
+<!-- resources/views/admin/pages/edit.blade.php -->
+
+@extends('admin.layouts.app')
+
+@section('content')
+<div class="container mx-auto px-4 py-6">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold">Chỉnh Sửa Trang</h1>
+        <p class="text-gray-600 mt-1">{{ $page->title }}</p>
+    </div>
+
+    <form action="{{ route('admin.pages.update', $page) }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        @method('PUT')
+        
+        <div class="grid grid-cols-3 gap-6">
+            {{-- Main Content Column --}}
+            <div class="col-span-2 space-y-6">
+                
+                {{-- Title --}}
+                <div class="bg-white rounded-lg shadow p-6">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">
+                        Tiêu đề <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" 
+                           name="title" 
+                           value="{{ old('title', $page->title) }}"
+                           class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="Nhập tiêu đề trang..."
+                           required>
+                    @error('title')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- Slug --}}
+                <div class="bg-white rounded-lg shadow p-6">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">
+                        Slug
+                    </label>
+                    <div class="flex gap-2">
+                        <input type="text" 
+                               name="slug" 
+                               value="{{ old('slug', $page->slug) }}"
+                               class="flex-1 border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="vd: gioi-thieu, lien-he">
+                        <a href="{{ url($page->slug) }}" 
+                           target="_blank" 
+                           class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded inline-flex items-center">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                            </svg>
+                        </a>
+                    </div>
+                    @error('slug')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- Excerpt --}}
+                <div class="bg-white rounded-lg shadow p-6">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">
+                        Mô tả ngắn
+                    </label>
+                    <textarea name="excerpt" 
+                              rows="3"
+                              class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Mô tả ngắn về trang...">{{ old('excerpt', $page->excerpt) }}</textarea>
+                    @error('excerpt')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- Content --}}
+                <div class="bg-white rounded-lg shadow p-6">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">
+                        Nội dung <span class="text-red-500">*</span>
+                    </label>
+                    <textarea name="content" 
+                              id="editor"
+                              class="w-full border border-gray-300 rounded px-4 py-2"
+                              required>{{ old('content', $page->content) }}</textarea>
+                    @error('content')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- SEO Meta --}}
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-bold mb-4">SEO Meta Tags</h3>
+                    
+                    <div class="space-y-4">
+                        {{-- Meta Title --}}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Meta Title</label>
+                            <input type="text" 
+                                   name="meta_title" 
+                                   value="{{ old('meta_title', $page->meta_title) }}"
+                                   class="w-full border border-gray-300 rounded px-4 py-2"
+                                   placeholder="Tiêu đề SEO (để trống sẽ dùng tiêu đề chính)">
+                        </div>
+
+                        {{-- Meta Description --}}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Meta Description</label>
+                            <textarea name="meta_description" 
+                                      rows="3"
+                                      class="w-full border border-gray-300 rounded px-4 py-2"
+                                      placeholder="Mô tả SEO...">{{ old('meta_description', $page->meta_description) }}</textarea>
+                        </div>
+
+                        {{-- Meta Keywords --}}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Meta Keywords</label>
+                            <input type="text" 
+                                   name="meta_keywords" 
+                                   value="{{ old('meta_keywords', $page->meta_keywords) }}"
+                                   class="w-full border border-gray-300 rounded px-4 py-2"
+                                   placeholder="keyword1, keyword2, keyword3">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {{-- Sidebar Column --}}
+            <div class="col-span-1 space-y-6">
+                
+                {{-- Publish Box --}}
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-bold mb-4">Xuất bản</h3>
+                    
+                    {{-- Status --}}
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
+                        <select name="status" class="w-full border border-gray-300 rounded px-4 py-2">
+                            <option value="draft" {{ old('status', $page->status) == 'draft' ? 'selected' : '' }}>Draft</option>
+                            <option value="published" {{ old('status', $page->status) == 'published' ? 'selected' : '' }}>Published</option>
+                        </select>
+                    </div>
+
+                    {{-- Created/Updated info --}}
+                    <div class="text-xs text-gray-600 mb-4 space-y-1">
+                        <p><strong>Tạo:</strong> {{ $page->created_at->format('d/m/Y H:i') }}</p>
+                        <p><strong>Cập nhật:</strong> {{ $page->updated_at->format('d/m/Y H:i') }}</p>
+                        <p><strong>Bởi:</strong> {{ $page->user->name }}</p>
+                    </div>
+
+                    {{-- Actions --}}
+                    <div class="flex gap-2">
+                        <button type="submit" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-medium">
+                            Cập Nhật
+                        </button>
+                        <a href="{{ route('admin.pages.index') }}" class="flex-1 text-center bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded font-medium">
+                            Hủy
+                        </a>
+                    </div>
+                </div>
+
+                {{-- Template --}}
+                <div class="bg-white rounded-lg shadow p-6">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Template</label>
+                    <select name="template" class="w-full border border-gray-300 rounded px-4 py-2">
+                        @foreach($templates as $key => $label)
+                            <option value="{{ $key }}" {{ old('template', $page->template) == $key ? 'selected' : '' }}>
+                                {{ $label }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <p class="text-xs text-gray-500 mt-2">Layout hiển thị trang</p>
+                </div>
+
+                {{-- Featured Image --}}
+                <div class="bg-white rounded-lg shadow p-6">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Ảnh đại diện</label>
+                    <div class="border-2 border-dashed border-gray-300 rounded p-4 text-center">
+                        <div id="image-preview" class="{{ $page->featured_image ? '' : 'hidden' }} mb-2">
+                            <img src="{{ $page->featured_image ? asset('storage/' . $page->featured_image) : '' }}" 
+                                 alt="Preview" 
+                                 class="max-w-full h-auto rounded">
+                        </div>
+                        <input type="file" 
+                               name="featured_image" 
+                               id="featured_image"
+                               accept="image/*"
+                               class="hidden">
+                        <button type="button" 
+                                onclick="document.getElementById('featured_image').click()"
+                                class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded text-sm">
+                            {{ $page->featured_image ? 'Thay đổi ảnh' : 'Chọn ảnh' }}
+                        </button>
+                        <p class="text-xs text-gray-500 mt-2">PNG, JPG, GIF (Max: 2MB)</p>
+                    </div>
+                </div>
+
+                {{-- Parent Page --}}
+                <div class="bg-white rounded-lg shadow p-6">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Trang cha</label>
+                    <select name="parent_id" class="w-full border border-gray-300 rounded px-4 py-2">
+                        <option value="">Không có (Trang gốc)</option>
+                        @foreach($pages as $p)
+                            <option value="{{ $p->id }}" {{ old('parent_id', $page->parent_id) == $p->id ? 'selected' : '' }}>
+                                {{ $p->title }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <p class="text-xs text-gray-500 mt-2">Để tạo cấu trúc phân cấp</p>
+                </div>
+
+                {{-- Order --}}
+                <div class="bg-white rounded-lg shadow p-6">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Thứ tự</label>
+                    <input type="number" 
+                           name="order" 
+                           value="{{ old('order', $page->order) }}"
+                           min="0"
+                           class="w-full border border-gray-300 rounded px-4 py-2">
+                    <p class="text-xs text-gray-500 mt-2">Số càng nhỏ, hiển thị càng trước</p>
+                </div>
+
+                {{-- Options --}}
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-bold mb-4">Tùy chọn</h3>
+                    
+                    <div class="space-y-3">
+                        {{-- Show in Menu --}}
+                        <label class="flex items-center">
+                            <input type="checkbox" 
+                                   name="show_in_menu" 
+                                   value="1"
+                                   {{ old('show_in_menu', $page->show_in_menu) ? 'checked' : '' }}
+                                   class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            <span class="ml-2 text-sm text-gray-700">Hiển thị trong Menu</span>
+                        </label>
+
+                        {{-- Is Homepage --}}
+                        <label class="flex items-center">
+                            <input type="checkbox" 
+                                   name="is_homepage" 
+                                   value="1"
+                                   {{ old('is_homepage', $page->is_homepage) ? 'checked' : '' }}
+                                   class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            <span class="ml-2 text-sm text-gray-700">Đặt làm Trang chủ</span>
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </form>
+</div>
+
+@push('scripts')
+<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+<script>
+$(document).ready(function() {
+    // CKEditor
+    ClassicEditor
+        .create(document.querySelector('#editor'), {
+            toolbar: [
+                'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 
+                'blockQuote', 'insertTable', 'undo', 'redo', 'imageUpload'
+            ],
+        })
+        .catch(error => {
+            console.error(error);
+        });
+
+    // Image Preview
+    $('#featured_image').on('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $('#image-preview img').attr('src', e.target.result);
+                $('#image-preview').removeClass('hidden');
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+});
+</script>
+@endpush
+@endsection

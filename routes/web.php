@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\PostController;
+use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CommentController;
 use App\Http\Controllers\Admin\SettingController;
@@ -62,6 +63,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::resource('posts', PostController::class);
     Route::get('/posts/category/{category}', [PostController::class, 'byCategory'])
         ->name('posts.by-category');
+
+    // Pages Management
+    Route::resource('pages', PageController::class);
+    Route::patch('pages/{page}/update-order', [PageController::class, 'updateOrder'])->name('pages.update-order');
+    Route::patch('pages/{page}/toggle-status', [PageController::class, 'toggleStatus'])->name('pages.toggle-status');
 
     Route::resource('comments', CommentController::class)->except('create','store','edit','update','show');
     Route::post('comments/{id}/approve', [CommentController::class, 'approve'])->name('comments.approve');

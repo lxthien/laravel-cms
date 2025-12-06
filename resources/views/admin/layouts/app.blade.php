@@ -41,6 +41,15 @@
                 </a>
                 @endcan
 
+                {{-- Thêm menu item --}}
+                <a href="{{ route('admin.pages.index') }}" 
+                class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 {{ request()->routeIs('admin.pages.*') ? 'bg-gray-100 border-r-4 border-blue-500' : '' }}">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                    Trang tĩnh
+                </a>
+
                 @can('post-list')
                 <a href="{{ route('admin.comments.index') }}" class="block px-4 py-2 hover:bg-gray-700">
                     Bình Luận
