@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Cviebrock\EloquentSluggable\Sluggable;
 
 class Post extends Model
@@ -86,7 +87,6 @@ class Post extends Model
         return $this->hasMany(Comment::class)->where('status', 'approved');
     }
 
-    // Scopes
     public function scopePublished($query)
     {
         return $query->where('status', 'published')
@@ -118,16 +118,45 @@ class Post extends Model
     }
 
     /**
-     * Lấy tất cả category cha để làm breadcrumb
+     * Get full path URL của post (dùng primary category nếu có)
+     * Output: slug-category-1/slug-category-2/post-slug
+     * Hoặc chỉ: post-slug (nếu không có category)
+     */
+    protected function fullPath(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                $primaryCategory = $this->primaryCategory();
+                
+                // Nếu không có primary category, chỉ trả về slug của post
+                if (!$primaryCategory) {
+                    return $this->slug;
+                }
+                
+                // Lấy full path của primary category
+                $categoryPath = $primaryCategory->full_path;
+                
+                // Kết hợp: category-path/post-slug
+                return $categoryPath . '/' . $this->slug;
+            }
+        );
+    }
+
+    /**
+     * Get breadcrumb cho post (dùng primary category)
      */
     public function getBreadcrumb()
     {
         $breadcrumb = [];
-        $category = $this->category;
+        $primaryCategory = $this->primaryCategory();
 
-        while ($category) {
-            array_unshift($breadcrumb, $category); // Thêm vào đầu mảng
-            $category = $category->parent;
+        if ($primaryCategory) {
+            // Lấy tất cả parent categories
+            $current = $primaryCategory;
+            while ($current) {
+                array_unshift($breadcrumb, $current);
+                $current = $current->parent;
+            }
         }
 
         return $breadcrumb;

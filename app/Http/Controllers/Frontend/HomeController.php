@@ -11,14 +11,13 @@ class HomeController extends Controller
     public function index()
     {
         // Lấy các bài viết mới nhất
-        $featuredPosts = Post::published()
-            ->with(['categories', 'user'])
-            ->latest('published_at')
-            ->take(3)
-            ->get();
+        $featuredPosts = Post::select('posts.*')
+            ->published() // Hoặc where('posts.status', 'published')...
+            ->with(['categories'])
+            ->latest('posts.published_at')
+            ->paginate(12);
         
         $latestPosts = Post::published()
-            ->with(['categories', 'user'])
             ->latest('published_at')
             ->skip(3)
             ->take(10)

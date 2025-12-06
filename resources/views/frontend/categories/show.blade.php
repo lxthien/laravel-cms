@@ -13,7 +13,7 @@
     @forelse($posts as $post)
     <article class="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition">
         @if($post->featured_image)
-        <a href="{{ route('post.show', $post->slug) }}">
+        <a href="{{ url($post->full_path) }}">
             <img src="{{ asset('storage/' . $post->featured_image) }}" 
                  alt="{{ $post->title }}"
                  class="w-full h-48 object-cover">

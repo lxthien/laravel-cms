@@ -10,40 +10,92 @@ class DynamicRouteController extends Controller
 {
     public function handle($path)
     {
-        // Bước 1: Ưu tiên tìm Post trước vì URL của Post là duy nhất và không có cấp cha.
-        $post = Post::published()->where('slug', $path)->first();
-
-        if ($post) {
-            // Nếu tìm thấy Post, gọi PostController để xử lý
-            return app(PostController::class)->show($post);
-        }
-
-        // Bước 2: Nếu không phải Post, xử lý như một đường dẫn Category đa cấp.
         $segments = explode('/', $path);
-        $category = null;
+        $segmentCount = count($segments);
+        
+        // Case 1: Chỉ có 1 segment
+        // Có thể là: category cấp 1 HOẶC post không có category path
+        if ($segmentCount === 1) {
+            $slug = $segments[0];
+            
+            // Ưu tiên tìm Post trước
+            $post = Post::published()
+                ->where('slug', $slug)
+                ->with(['categories', 'user'])
+                ->first();
+            
+            if ($post) {
+                return app(PostController::class)->show($post);
+            }
+            
+            // Nếu không phải post, tìm category cấp 1
+            $category = Category::where('slug', $slug)
+                ->whereNull('parent_id')
+                ->where('status', 1)
+                ->first();
+            
+            if ($category) {
+                return app(CategoryController::class)->show($category);
+            }
+        }
+        
+        // Case 2: Có nhiều segments (2 trở lên)
+        // Có thể là: category đa cấp HOẶC category/post
+        else {
+            // Thử tìm post ở segment cuối cùng
+            $postSlug = end($segments);
+            $post = Post::published()
+                ->where('slug', $postSlug)
+                ->with(['categories', 'user'])
+                ->first();
+            
+            if ($post) {
+                // Verify đường dẫn category có khớp với primary category của post không
+                $primaryCategory = $post->primaryCategory();
+                
+                if ($primaryCategory) {
+                    $expectedPath = $primaryCategory->full_path . '/' . $post->slug;
+                    
+                    // Nếu path khớp, hiển thị post
+                    if ($path === $expectedPath) {
+                        return app(PostController::class)->show($post);
+                    }
+                }
+            }
+            
+            // Nếu không phải post, xử lý như category đa cấp
+            $category = $this->findCategoryByPath($segments);
+            
+            if ($category) {
+                return app(CategoryController::class)->show($category);
+            }
+        }
+        
+        // Không tìm thấy gì, trả về 404
+        abort(404);
+    }
+    
+    /**
+     * Tìm category theo đường dẫn phân cấp
+     */
+    private function findCategoryByPath(array $segments)
+    {
         $parentId = null;
-
+        $category = null;
+        
         foreach ($segments as $slug) {
             $category = Category::where('slug', $slug)
                 ->where('parent_id', $parentId)
                 ->where('status', 1)
                 ->first();
-
+            
             if (!$category) {
-                // Nếu một segment trong path không hợp lệ, thoát và báo 404
-                $category = null; // Reset category
-                break;
+                return null;
             }
-
+            
             $parentId = $category->id;
         }
-
-        if ($category) {
-            // Nếu tìm thấy Category ở cuối đường dẫn, gọi CategoryController
-            return app(CategoryController::class)->show($category);
-        }
-
-        // Nếu không tìm thấy gì, trả về trang 404
-        abort(404);
+        
+        return $category;
     }
 }

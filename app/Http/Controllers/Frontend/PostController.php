@@ -9,20 +9,27 @@ class PostController extends Controller
 {
     public function show(Post $post)
     {
-        /* $post = Post::where('slug', $slug)
-            ->published()
-            ->with(['category', 'user', 'tags', 'comments.user'])
-            ->firstOrFail(); */
+        // Eager load relationships
+        $post->load(['user', 'categories', 'tags', 'comments.user']);
         
-        // Tăng view count
-        $post->incrementViewCount();
+        // Increment view count
+        $post->increment('view_count');
         
-        // Bài viết liên quan
-        $relatedPosts = Post::published()
-            ->where('category_id', $post->category_id)
-            ->where('id', '!=', $post->id)
-            ->take(4)
-            ->get();
+        // Get related posts từ primary category
+        $primaryCategory = $post->primaryCategory();
+        
+        $relatedPosts = collect();
+        
+        if ($primaryCategory) {
+            $relatedPosts = Post::published()
+                ->where('id', '!=', $post->id)
+                ->whereHas('categories', function($query) use ($primaryCategory) {
+                    $query->where('categories.id', $primaryCategory->id);
+                })
+                ->with(['categories'])
+                ->take(4)
+                ->get();
+        }
 
         // Only comments with status = 'approved' and parent_id = null (root comments)
         $comments = $post->comments()
@@ -33,6 +40,23 @@ class PostController extends Controller
             }, 'user'])
             ->orderBy('created_at')
             ->get();
+        
+        // Breadcrumb
+        $breadcrumbs = [
+            ['title' => 'Trang Chủ', 'url' => route('home')]
+        ];
+        
+        foreach ($post->getBreadcrumb() as $cat) {
+            $breadcrumbs[] = [
+                'title' => $cat->name,
+                'url'   => url($cat->full_path)
+            ];
+        }
+        
+        $breadcrumbs[] = [
+            'title' => $post->title,
+            'url'   => ''
+        ];
         
         return view('frontend.posts.show', compact('post', 'relatedPosts', 'comments'));
     }

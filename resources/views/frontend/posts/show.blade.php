@@ -97,7 +97,7 @@
         @foreach($relatedPosts as $related)
         <article class="bg-white rounded-lg shadow p-4 hover:shadow-lg transition">
             <h3 class="font-bold mb-2">
-                <a href="{{ route('post.show', $related->slug) }}" 
+                <a href="{{ url($post->full_path) }}" 
                    class="hover:text-blue-600">
                     {{ $related->title }}
                 </a>

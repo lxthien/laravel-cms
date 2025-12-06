@@ -19,16 +19,16 @@
             
             <div class="p-4">
                 <div class="text-sm text-gray-500 mb-2">
-                    <a href="{{ url($post->category->full_path) }}" 
+                    <a href="{{ url($post->primaryCategory()->full_path) }}" 
                        class="text-blue-600 hover:underline">
-                        {{ $post->category->name }}
+                        {{ $post->primaryCategory()->name }}
                     </a>
                     <span class="mx-2">•</span>
                     <span>{{ $post->published_at->format('d/m/Y') }}</span>
                 </div>
                 
                 <h3 class="text-xl font-bold mb-2">
-                    <a href="{{ url($post->slug) }}" 
+                    <a href="{{ url($post->full_path) }}" 
                        class="hover:text-blue-600">
                         {{ $post->title }}
                     </a>
