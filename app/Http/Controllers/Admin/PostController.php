@@ -23,13 +23,15 @@ class PostController extends Controller
 
         // Admin và Editor xem tất cả posts
         // Author chỉ xem posts của mình
-        $query = Post::with(['user', 'category']);
 
         if (auth()->user()->hasRole('author')) {
             $query->where('user_id', auth()->id());
         }
 
-        $posts = $query->latest()->paginate(20);
+        // Eager load categories (nhiều) thay vì category (một)
+        $posts = Post::with(['user', 'categories', 'tags'])
+            ->latest()
+            ->paginate(50);
 
         return view('admin.posts.index', compact('posts'));
     }
@@ -54,10 +56,12 @@ class PostController extends Controller
     {
         $this->authorize('post-create');
 
-        $validated = $request->validate([
+       $validated = $request->validate([
             'title' => 'required|max:255',
             'slug' => 'nullable|unique:posts,slug',
-            'category_id' => 'required|exists:categories,id',
+            'categories' => 'required|array|min:1',
+            'categories.*' => 'exists:categories,id',
+            'primary_category' => 'required|exists:categories,id',
             'excerpt' => 'nullable',
             'content' => 'required',
             'featured_image' => 'nullable|image|max:2048',
@@ -88,8 +92,18 @@ class PostController extends Controller
             $validated['published_at'] = now();
         }
 
-        // Tạo post
-        $post = Post::create($validated);
+        // Create post (không cần category_id nữa)
+        $postData = collect($validated)->except(['categories', 'primary_category', 'tags'])->toArray();
+        $post = Post::create($postData);
+
+        // Attach categories với is_primary flag
+        $categoryData = [];
+        foreach ($validated['categories'] as $categoryId) {
+            $categoryData[$categoryId] = [
+                'is_primary' => ($categoryId == $validated['primary_category'])
+            ];
+        }
+        $post->categories()->attach($categoryData);
 
         // Xử lý Tags (quan trọng)
         if ($request->has('tags')) {
@@ -127,9 +141,9 @@ class PostController extends Controller
                 }
 
                 // Validate ký tự
-                if (!preg_match('/^[a-zA-Z0-9\s\-_]+$/', $tagName)) {
+                /* if (!preg_match('/^[a-zA-Z0-9\s\-_]+$/', $tagName)) {
                     continue;
-                }
+                } */
                 
                 // Kiểm tra xem tag đã tồn tại chưa (case-insensitive)
                 $existingTag = Tag::whereRaw('LOWER(name) = ?', [strtolower($tagName)])->first();
@@ -198,7 +212,9 @@ class PostController extends Controller
         $validated = $request->validate([
             'title' => 'required|max:255',
             'slug' => 'nullable|unique:posts,slug,' . $post->id,
-            'category_id' => 'required|exists:categories,id',
+            'categories' => 'required|array|min:1',
+            'categories.*' => 'exists:categories,id',
+            'primary_category' => 'required|exists:categories,id',
             'excerpt' => 'nullable',
             'content' => 'required',
             'featured_image' => 'nullable|image|max:2048',
@@ -232,7 +248,17 @@ class PostController extends Controller
         }
 
         // Update post
-        $post->update($validated);
+        $postData = collect($validated)->except(['categories', 'primary_category', 'tags'])->toArray();
+        $post->update($postData);
+
+        // Sync categories với is_primary flag
+        $categoryData = [];
+        foreach ($validated['categories'] as $categoryId) {
+            $categoryData[$categoryId] = [
+                'is_primary' => ($categoryId == $validated['primary_category'])
+            ];
+        }
+        $post->categories()->sync($categoryData);
 
         // Sync tags (sử dụng sync thay vì attach)
         if ($request->has('tags')) {

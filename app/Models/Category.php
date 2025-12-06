@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Category extends Model
 {
@@ -41,10 +42,14 @@ class Category extends Model
         ];
     }
 
-    // Relationships
-    public function posts(): HasMany
+    /**
+     * Many-to-Many với Posts
+     */
+    public function posts(): BelongsToMany
     {
-        return $this->hasMany(Post::class);
+        return $this->belongsToMany(Post::class, 'category_post')
+            ->withPivot('is_primary')
+            ->withTimestamps();
     }
 
     // Parent category (self-referencing)

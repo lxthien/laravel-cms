@@ -89,23 +89,34 @@
             <!-- Sidebar (Right) -->
             <div class="col-span-1">
                 
-                <!-- Category -->
+                <!-- Categories (Multiple Select với Primary) -->
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="category_id">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">
                         Danh Mục <span class="text-red-500">*</span>
                     </label>
-                    <select name="category_id" id="category_id" required
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
-                        <option value="">-- Chọn danh mục --</option>
+                    
+                    <select name="categories[]" id="categories" multiple class="w-full border rounded px-3 py-2 h-48">
                         @foreach($categories as $category)
-                            <option value="{{ $category->id }}" {{ old('content', $post->category_id) == $category->id ? 'selected' : '' }}>
-                                {{ $category->name }}
+                            <option value="{{ $category->id }}" 
+                                {{ $post->categories->contains($category->id) ? 'selected' : '' }}>
+                                {{ str_repeat('—', $category->level ?? 0) }} {{ $category->name }}
                             </option>
                         @endforeach
                     </select>
-                    @error('category_id')
+                    <p class="text-xs text-gray-500 mt-1">Giữ Ctrl (Cmd) để chọn nhiều danh mục</p>
+                    @error('categories')
                         <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
                     @enderror
+                    
+                    <!-- Primary Category Radio -->
+                    <div class="mt-3" id="primary-category-container" style="display: none;">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">
+                            Danh mục chính
+                        </label>
+                        <div id="primary-category-radios" class="space-y-2">
+                            <!-- Will be populated by JS -->
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Tags với Select2 -->
@@ -121,6 +132,10 @@
                             </option>
                         @endforeach
                     </select>
+                    <p class="text-xs text-gray-500 mt-1">
+                        Nhập tag và nhấn <kbd class="px-1 py-0.5 bg-gray-200 rounded text-xs">Enter</kbd> để thêm
+                    </p>
+                    {{-- Error container sẽ được JS insert vào đây --}}
                 </div>
 
                 <!-- Featured Image -->
@@ -183,41 +198,141 @@
 
 @push('scripts')
 <script>
-$(document).ready(function() {
-    $('#tags').select2({
-        tags: true,
-        tokenSeparators: [','],
-        placeholder: "Chọn hoặc nhập tags...",
-        allowClear: true,
-        maximumSelectionLength: 10,  // Tối đa 10 tags
-
-        createTag: function (params) {
-            var term = $.trim(params.term);
+    $(document).ready(function() {
+        $('#tags').select2({
+            tags: true,
+            tokenSeparators: [','],  // Chỉ dùng dấu phẩy, bỏ space để tránh split khi gõ
+            placeholder: "Nhập tag và nhấn Enter...",
+            allowClear: true,
             
-            // Không cho phép tag rỗng
-            if (term === '') {
-                return null;
-            }
-
-            // Giới hạn độ dài
-            if (term.length < 2 || term.length > 50) {
-                alert('Tag phải từ 2-50 ký tự!');
-                return null;
-            }
-
-            // Chỉ cho phép chữ cái, số, gạch ngang
-            if (!/^[a-zA-Z0-9\s\-_]+$/.test(term)) {
-                alert('Tag chỉ được chứa chữ cái, số và gạch ngang!');
-                return null;
-            }
+            // Custom tag creation
+            createTag: function (params) {
+                var term = $.trim(params.term);
+                
+                // Không tạo tag khi đang gõ (chỉ khi nhấn Enter)
+                if (params.inputType === 'input') {
+                    return null; // Không suggest tag trong lúc gõ
+                }
+                
+                // Validate khi nhấn Enter hoặc blur
+                if (term === '') {
+                    return null;
+                }
+                
+                // Validate độ dài (2-50 ký tự)
+                if (term.length < 2) {
+                    showTagError('Tag phải từ 2 ký tự trở lên!');
+                    return null;
+                }
+                
+                if (term.length > 50) {
+                    showTagError('Tag không được quá 50 ký tự!');
+                    return null;
+                }
+                
+                if (/[<>'"\/\\;`%\[\]{}|]/.test(term)) {
+                    showTagError('Tag không được chứa ký tự đặc biệt: < > \' " / \\ ; ` % [ ] { } |');
+                    return null;
+                }
+                
+                return {
+                    id: 'new:' + term,
+                    text: term + ' (mới)',
+                    newTag: true
+                };
+            },
             
-            return {
-                id: 'new:' + term,
-                text: term + ' (mới)',
-                newTag: true
+            // Insert tag khi chọn hoặc nhấn Enter
+            insertTag: function (data, tag) {
+                // Kiểm tra tag đã tồn tại chưa
+                var exists = false;
+                data.forEach(function(item) {
+                    if (item.text.toLowerCase() === tag.text.toLowerCase()) {
+                        exists = true;
+                    }
+                });
+                
+                if (!exists) {
+                    data.push(tag);
+                } else {
+                    showTagError('Tag này đã được thêm rồi!');
+                }
             }
+        });
+
+        // Xử lý khi nhấn Enter trong input của Select2
+        $('#tags').on('select2:select', function (e) {
+            // Clear error nếu có
+            clearTagError();
+        });
+        
+        // Xử lý khi xóa tag
+        $('#tags').on('select2:unselect', function (e) {
+            clearTagError();
+        });
+
+        // Initialize Select2 for Categories
+        $('#categories').select2({
+            placeholder: "Chọn danh mục...",
+            allowClear: false
+        });
+    });
+
+    // ===== TAG ERROR HANDLING =====
+    function showTagError(message) {
+        // Remove existing error
+        clearTagError();
+        
+        // Show error message
+        const errorDiv = $('<div>', {
+            id: 'tag-error-message',
+            class: 'text-red-500 text-xs italic mt-1',
+            text: message
+        });
+        
+        $('#tags').closest('.mb-4').append(errorDiv);
+        
+        // Auto hide after 3 seconds
+        setTimeout(clearTagError, 3000);
+    }
+
+    function clearTagError() {
+        $('#tag-error-message').remove();
+    }
+
+    // Handle Primary Category Selection
+    $('#categories').on('change', function() {
+        const selectedCategories = $(this).val();
+        const container = $('#primary-category-container');
+        const radiosContainer = $('#primary-category-radios');
+        
+        if (selectedCategories && selectedCategories.length > 0) {
+            container.show();
+            radiosContainer.empty();
+            
+            // Get selected option texts
+            selectedCategories.forEach((catId, index) => {
+                const catText = $(`#categories option[value="${catId}"]`).text();
+                const isFirst = index === 0;
+                
+                radiosContainer.append(`
+                    <label class="flex items-center">
+                        <input type="radio" name="primary_category" value="${catId}" 
+                               class="mr-2" ${isFirst ? 'checked' : ''}>
+                        <span>${catText}</span>
+                    </label>
+                `);
+            });
+        } else {
+            container.hide();
         }
     });
-});
+
+    $('#categories').trigger('change');
+    
+    // Set primary category đã chọn
+    @if($post->primaryCategory())
+        $(`input[name="primary_category"][value="{{ $post->primaryCategory()->id }}"]`).prop('checked', true);
+    @endif
 </script>
 @endpush

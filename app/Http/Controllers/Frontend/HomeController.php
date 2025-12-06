@@ -12,13 +12,13 @@ class HomeController extends Controller
     {
         // Lấy các bài viết mới nhất
         $featuredPosts = Post::published()
-            ->with(['category', 'user'])
+            ->with(['categories', 'user'])
             ->latest('published_at')
             ->take(3)
             ->get();
         
         $latestPosts = Post::published()
-            ->with(['category', 'user'])
+            ->with(['categories', 'user'])
             ->latest('published_at')
             ->skip(3)
             ->take(10)

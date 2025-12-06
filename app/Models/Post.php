@@ -16,7 +16,6 @@ class Post extends Model
 
     protected $fillable = [
         'user_id',
-        'category_id',
         'title',
         'slug',
         'excerpt',
@@ -51,9 +50,24 @@ class Post extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function category(): BelongsTo
+    // ==== Relationships ====
+    
+    /**
+     * Many-to-Many với Categories
+     */
+    public function categories(): BelongsToMany
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsToMany(Category::class, 'category_post')
+            ->withPivot('is_primary')
+            ->withTimestamps();
+    }
+
+    /**
+     * Lấy category chính (primary)
+     */
+    public function primaryCategory()
+    {
+        return $this->categories()->wherePivot('is_primary', true)->first();
     }
 
     public function tags(): BelongsToMany
