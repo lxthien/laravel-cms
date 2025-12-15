@@ -3,6 +3,14 @@ import 'bootstrap';
 // Import jQuery
 import jQuery from 'jquery';
 window.$ = window.jQuery = jQuery;
+
+// Import Select2
+import select2 from 'select2';
+select2($);
+
+// Import Select2 CSS
+import 'select2/dist/css/select2.min.css';
+
 /**
  * We'll load the axios HTTP library which allows us to easily issue requests
  * to our Laravel back-end. This library automatically handles sending the

@@ -23,15 +23,14 @@ class PostController extends Controller
 
         // Admin và Editor xem tất cả posts
         // Author chỉ xem posts của mình
+        $query = Post::with(['user', 'categories', 'tags']);
 
         if (auth()->user()->hasRole('author')) {
             $query->where('user_id', auth()->id());
         }
 
         // Eager load categories (nhiều) thay vì category (một)
-        $posts = Post::with(['user', 'categories', 'tags'])
-            ->latest()
-            ->paginate(50);
+        $posts = $query->latest()->paginate(50);
 
         return view('admin.posts.index', compact('posts'));
     }
@@ -56,12 +55,20 @@ class PostController extends Controller
     {
         $this->authorize('post-create');
 
-       $validated = $request->validate([
+        $validated = $request->validate([
             'title' => 'required|max:255',
             'slug' => 'nullable|unique:posts,slug',
             'categories' => 'required|array|min:1',
             'categories.*' => 'exists:categories,id',
-            'primary_category' => 'required|exists:categories,id',
+            'primary_category' => [
+                'required',
+                'exists:categories,id',
+                function ($attribute, $value, $fail) use ($request) {
+                    if (!in_array($value, $request->categories ?? [])) {
+                        $fail('Danh mục chính phải nằm trong danh sách danh mục đã chọn.');
+                    }
+                },
+            ],
             'excerpt' => 'nullable',
             'content' => 'required',
             'featured_image' => 'nullable|image|max:2048',
@@ -127,7 +134,7 @@ class PostController extends Controller
         if (count($tags) > 10) {
             throw new \Exception('Tối đa 10 tags cho một bài viết!');
         }
-        
+
         foreach ($tags as $tag) {
             // Kiểm tra xem là tag mới hay tag có sẵn
             if (strpos($tag, 'new:') === 0) {
@@ -144,10 +151,10 @@ class PostController extends Controller
                 /* if (!preg_match('/^[a-zA-Z0-9\s\-_]+$/', $tagName)) {
                     continue;
                 } */
-                
+
                 // Kiểm tra xem tag đã tồn tại chưa (case-insensitive)
                 $existingTag = Tag::whereRaw('LOWER(name) = ?', [strtolower($tagName)])->first();
-                
+
                 if ($existingTag) {
                     $tagIds[] = $existingTag->id;
                 } else {
@@ -163,7 +170,7 @@ class PostController extends Controller
                 $tagIds[] = $tag;
             }
         }
-        
+
         return $tagIds;
     }
 
@@ -214,7 +221,15 @@ class PostController extends Controller
             'slug' => 'nullable|unique:posts,slug,' . $post->id,
             'categories' => 'required|array|min:1',
             'categories.*' => 'exists:categories,id',
-            'primary_category' => 'required|exists:categories,id',
+            'primary_category' => [
+                'required',
+                'exists:categories,id',
+                function ($attribute, $value, $fail) use ($request) {
+                    if (!in_array($value, $request->categories ?? [])) {
+                        $fail('Danh mục chính phải nằm trong danh sách danh mục đã chọn.');
+                    }
+                },
+            ],
             'excerpt' => 'nullable',
             'content' => 'required',
             'featured_image' => 'nullable|image|max:2048',
@@ -237,7 +252,7 @@ class PostController extends Controller
             if ($post->featured_image) {
                 Storage::disk('public')->delete($post->featured_image);
             }
-            
+
             $validated['featured_image'] = $request->file('featured_image')
                 ->store('posts', 'public');
         }
@@ -304,32 +319,32 @@ class PostController extends Controller
     {
         // Query posts thuộc category này
         $query = Post::select('posts.*')
-            ->whereHas('categories', function($q) use ($category) {
+            ->whereHas('categories', function ($q) use ($category) {
                 $q->where('categories.id', $category->id);
             })
             ->with(['user', 'categories']);
-        
+
         // Filter by status nếu có
         if ($request->has('status') && $request->status != '') {
             $query->where('status', $request->status);
         }
-        
+
         // Search nếu có
         if ($request->has('search') && $request->search != '') {
-            $query->where(function($q) use ($request) {
+            $query->where(function ($q) use ($request) {
                 $q->where('title', 'like', '%' . $request->search . '%')
-                  ->orWhere('content', 'like', '%' . $request->search . '%');
+                    ->orWhere('content', 'like', '%' . $request->search . '%');
             });
         }
-        
+
         $posts = $query->latest('posts.created_at')->paginate(20);
-        
+
         // Breadcrumb để biết đang ở category nào
         $breadcrumbs = $this->getCategoryBreadcrumbs($category);
-        
+
         return view('admin.posts.by-category', compact('category', 'posts', 'breadcrumbs'));
     }
-    
+
     /**
      * Lấy breadcrumb cho category
      */
@@ -337,12 +352,12 @@ class PostController extends Controller
     {
         $breadcrumbs = [];
         $current = $category;
-        
+
         while ($current) {
             array_unshift($breadcrumbs, $current);
             $current = $current->parent;
         }
-        
+
         return $breadcrumbs;
     }
 }
