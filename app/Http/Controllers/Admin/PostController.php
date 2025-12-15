@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
+use App\Rules\UniqueSlugAcrossTables;
+
 class PostController extends Controller
 {
     /**
@@ -55,9 +57,14 @@ class PostController extends Controller
     {
         $this->authorize('post-create');
 
+        // Auto-generate slug if empty
+        if (!$request->filled('slug') && $request->filled('title')) {
+            $request->merge(['slug' => Str::slug($request->title)]);
+        }
+
         $validated = $request->validate([
             'title' => 'required|max:255',
-            'slug' => 'nullable|unique:posts,slug',
+            'slug' => ['required', new UniqueSlugAcrossTables('posts')],
             'categories' => 'required|array|min:1',
             'categories.*' => 'exists:categories,id',
             'primary_category' => [
@@ -79,11 +86,6 @@ class PostController extends Controller
             'meta_keywords' => 'nullable',
             'tags' => 'nullable|array',
         ]);
-
-        // Tạo slug tự động
-        if (empty($validated['slug'])) {
-            $validated['slug'] = Str::slug($validated['title']);
-        }
 
         // Upload featured image
         if ($request->hasFile('featured_image')) {
@@ -216,9 +218,14 @@ class PostController extends Controller
 
         $this->authorize('post-edit');
 
+        // Auto-generate slug if empty
+        if (!$request->filled('slug') && $request->filled('title')) {
+            $request->merge(['slug' => Str::slug($request->title)]);
+        }
+
         $validated = $request->validate([
             'title' => 'required|max:255',
-            'slug' => 'nullable|unique:posts,slug,' . $post->id,
+            'slug' => ['required', new UniqueSlugAcrossTables('posts', $post->id)],
             'categories' => 'required|array|min:1',
             'categories.*' => 'exists:categories,id',
             'primary_category' => [
@@ -240,11 +247,6 @@ class PostController extends Controller
             'meta_keywords' => 'nullable',
             'tags' => 'nullable|array',
         ]);
-
-        // Update slug
-        if (empty($validated['slug'])) {
-            $validated['slug'] = Str::slug($validated['title']);
-        }
 
         // Upload new featured image
         if ($request->hasFile('featured_image')) {

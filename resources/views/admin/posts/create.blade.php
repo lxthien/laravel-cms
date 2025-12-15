@@ -31,7 +31,10 @@
                             Slug (Tự động tạo nếu để trống)
                         </label>
                         <input type="text" name="slug" id="slug" value="{{ old('slug') }}"
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline @error('slug') border-red-500 @enderror">
+                        @error('slug')
+                            <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <!-- Excerpt -->
@@ -186,26 +189,26 @@
 @endsection
 
 @push('styles')
-<style>
-    /* Customize Select2 */
-    .select2-container--default .select2-selection--multiple {
-        border: 1px solid #d1d5db;
-        border-radius: 0.375rem;
-        min-height: 42px;
-        padding: 4px;
-    }
+    <style>
+        /* Customize Select2 */
+        .select2-container--default .select2-selection--multiple {
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            min-height: 42px;
+            padding: 4px;
+        }
 
-    .select2-container--default.select2-container--focus .select2-selection--multiple {
-        border-color: #3b82f6;
-        outline: 0;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-</style>
+        .select2-container--default.select2-container--focus .select2-selection--multiple {
+            border-color: #3b82f6;
+            outline: 0;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+    </style>
 @endpush
 
 @push('scripts')
-<script>
-    // Set primary category ID to null for new posts
-    window.currentPrimaryCategoryId = null;
-</script>
+    <script>
+        // Set primary category ID to null for new posts
+        window.currentPrimaryCategoryId = null;
+    </script>
 @endpush

@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
+use App\Rules\UniqueSlugAcrossTables;
+
 class PageController extends Controller
 {
     /**
@@ -24,9 +26,9 @@ class PageController extends Controller
 
         // Search
         if ($request->has('search') && $request->search != '') {
-            $query->where(function($q) use ($request) {
+            $query->where(function ($q) use ($request) {
                 $q->where('title', 'like', '%' . $request->search . '%')
-                  ->orWhere('content', 'like', '%' . $request->search . '%');
+                    ->orWhere('content', 'like', '%' . $request->search . '%');
             });
         }
 
@@ -42,7 +44,7 @@ class PageController extends Controller
     {
         $pages = Page::whereNull('parent_id')->ordered()->get();
         $templates = $this->getTemplates();
-        
+
         return view('admin.pages.create', compact('pages', 'templates'));
     }
 
@@ -51,9 +53,14 @@ class PageController extends Controller
      */
     public function store(Request $request)
     {
+        // Auto-generate slug if empty
+        if (!$request->filled('slug') && $request->filled('title')) {
+            $request->merge(['slug' => Str::slug($request->title)]);
+        }
+
         $validated = $request->validate([
             'title' => 'required|max:255',
-            'slug' => 'nullable|unique:pages,slug|max:255',
+            'slug' => ['required', new UniqueSlugAcrossTables('pages'), 'max:255'],
             'excerpt' => 'nullable',
             'content' => 'required',
             'featured_image' => 'nullable',
@@ -68,7 +75,6 @@ class PageController extends Controller
             'parent_id' => 'nullable|exists:pages,id',
         ]);
 
-        $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
         $validated['user_id'] = Auth::id();
         $validated['show_in_menu'] = $request->has('show_in_menu');
         $validated['is_homepage'] = $request->has('is_homepage');
@@ -97,7 +103,7 @@ class PageController extends Controller
             ->ordered()
             ->get();
         $templates = $this->getTemplates();
-        
+
         return view('admin.pages.edit', compact('page', 'pages', 'templates'));
     }
 
@@ -106,9 +112,14 @@ class PageController extends Controller
      */
     public function update(Request $request, Page $page)
     {
+        // Auto-generate slug if empty
+        if (!$request->filled('slug') && $request->filled('title')) {
+            $request->merge(['slug' => Str::slug($request->title)]);
+        }
+
         $validated = $request->validate([
             'title' => 'required|max:255',
-            'slug' => 'nullable|unique:pages,slug,' . $page->id . '|max:255',
+            'slug' => ['required', new UniqueSlugAcrossTables('pages', $page->id), 'max:255'],
             'excerpt' => 'nullable',
             'content' => 'required',
             'featured_image' => 'nullable',
@@ -123,7 +134,6 @@ class PageController extends Controller
             'parent_id' => 'nullable|exists:pages,id',
         ]);
 
-        $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
         $validated['show_in_menu'] = $request->has('show_in_menu');
         $validated['is_homepage'] = $request->has('is_homepage');
 

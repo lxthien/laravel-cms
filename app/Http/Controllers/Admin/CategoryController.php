@@ -7,6 +7,8 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
+use App\Rules\UniqueSlugAcrossTables;
+
 class CategoryController extends Controller
 {
     /**
@@ -34,23 +36,25 @@ class CategoryController extends Controller
 
         // Lấy tất cả categories để làm parent
         $parentCategories = Category::whereNull('parent_id')
-                                    ->orderBy('name')
-                                    ->get();
+            ->orderBy('name')
+            ->get();
 
         return view('admin.categories.create', compact('parentCategories'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $this->authorize('category-create');
 
+        // Auto-generate slug if empty
+        if (!$request->filled('slug') && $request->filled('name')) {
+            $request->merge(['slug' => Str::slug($request->name)]);
+        }
+
         // Validation
         $validated = $request->validate([
             'name' => 'required|max:255',
-            'slug' => 'nullable|unique:categories,slug',
+            'slug' => ['required', new UniqueSlugAcrossTables('categories')],
             'parent_id' => 'nullable|exists:categories,id',
             'description' => 'nullable',
             'image' => 'nullable|image|max:2048',
@@ -59,11 +63,6 @@ class CategoryController extends Controller
             'order' => 'nullable|integer',
             'status' => 'boolean',
         ]);
-
-        // Tạo slug tự động nếu không có
-        if (empty($validated['slug'])) {
-            $validated['slug'] = Str::slug($validated['name']);
-        }
 
         // Upload image nếu có
         if ($request->hasFile('image')) {
@@ -87,9 +86,11 @@ class CategoryController extends Controller
         $this->authorize('category-list');
 
         // Load posts trong category
-        $category->load(['posts' => function($query) {
-            $query->latest()->take(10);
-        }]);
+        $category->load([
+            'posts' => function ($query) {
+                $query->latest()->take(10);
+            }
+        ]);
 
         return view('admin.categories.show', compact('category'));
     }
@@ -103,9 +104,9 @@ class CategoryController extends Controller
 
         // Lấy parent categories (không bao gồm chính nó và con của nó)
         $parentCategories = Category::whereNull('parent_id')
-                                    ->where('id', '!=', $category->id)
-                                    ->orderBy('name')
-                                    ->get();
+            ->where('id', '!=', $category->id)
+            ->orderBy('name')
+            ->get();
 
         return view('admin.categories.edit', compact('category', 'parentCategories'));
     }
@@ -117,10 +118,15 @@ class CategoryController extends Controller
     {
         $this->authorize('category-edit');
 
+        // Auto-generate slug if empty
+        if (!$request->filled('slug') && $request->filled('name')) {
+            $request->merge(['slug' => Str::slug($request->name)]);
+        }
+
         // Validation
         $validated = $request->validate([
             'name' => 'required|max:255',
-            'slug' => 'nullable|unique:categories,slug,' . $category->id,
+            'slug' => ['required', new UniqueSlugAcrossTables('categories', $category->id)],
             'parent_id' => 'nullable|exists:categories,id',
             'description' => 'nullable',
             'image' => 'nullable|image|max:2048',
@@ -130,18 +136,13 @@ class CategoryController extends Controller
             'status' => 'boolean',
         ]);
 
-        // Update slug nếu cần
-        if (empty($validated['slug'])) {
-            $validated['slug'] = Str::slug($validated['name']);
-        }
-
         // Upload image mới nếu có
         if ($request->hasFile('image')) {
             // Xóa image cũ
             if ($category->image) {
                 \Storage::disk('public')->delete($category->image);
             }
-            
+
             $imagePath = $request->file('image')->store('categories', 'public');
             $validated['image'] = $imagePath;
         }
@@ -188,11 +189,11 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'order' => 'required|integer|min:0'
         ]);
-        
+
         try {
             $category->order = $validated['order'];
             $category->save();
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Cập nhật thứ tự thành công!'
@@ -213,11 +214,11 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'status' => 'required|boolean'
         ]);
-        
+
         try {
             $category->status = $validated['status'];
             $category->save();
-            
+
             return response()->json([
                 'success' => true,
                 'message' => $validated['status'] ? 'Đã kích hoạt danh mục!' : 'Đã ẩn danh mục!'
