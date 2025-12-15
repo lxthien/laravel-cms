@@ -1,0 +1,18 @@
+/* Hide default checkbox */
+.status-toggle {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* Custom toggle switch styling */
+.status-toggle:disabled+div {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Smooth transition for toggle */
+.status-toggle+div {
+    transition: background-color 0.3s ease;
+}

@@ -249,36 +249,4 @@
         </div>
     </form>
 </div>
-
-@push('scripts')
-<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
-<script>
-$(document).ready(function() {
-    // CKEditor
-    ClassicEditor
-        .create(document.querySelector('#editor'), {
-            toolbar: [
-                'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 
-                'blockQuote', 'insertTable', 'undo', 'redo', 'imageUpload'
-            ],
-        })
-        .catch(error => {
-            console.error(error);
-        });
-
-    // Image Preview
-    $('#featured_image').on('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                $('#image-preview img').attr('src', e.target.result);
-                $('#image-preview').removeClass('hidden');
-            }
-            reader.readAsDataURL(file);
-        }
-    });
-});
-</script>
-@endpush
 @endsection

@@ -17,7 +17,7 @@ class PostController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         if (!auth()->user()->can('post-list')) {
             abort(403, 'Bạn không có quyền truy cập.');
@@ -31,8 +31,21 @@ class PostController extends Controller
             $query->where('user_id', auth()->id());
         }
 
+        // Filter by status
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
+        }
+
+        // Search
+        if ($request->has('search') && $request->search != '') {
+            $query->where(function ($q) use ($request) {
+                $q->where('title', 'like', '%' . $request->search . '%')
+                    ->orWhere('content', 'like', '%' . $request->search . '%');
+            });
+        }
+
         // Eager load categories (nhiều) thay vì category (một)
-        $posts = $query->latest()->paginate(50);
+        $posts = $query->latest()->paginate(20);
 
         return view('admin.posts.index', compact('posts'));
     }

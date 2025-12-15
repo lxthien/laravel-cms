@@ -8,10 +8,10 @@ import { Link } from '@ckeditor/ckeditor5-link';
 import { List } from '@ckeditor/ckeditor5-list';
 import { Paragraph } from '@ckeditor/ckeditor5-paragraph';
 import { Image } from '@ckeditor/ckeditor5-image';
-import { CKFinderUploadAdapter} from '@ckeditor/ckeditor5-adapter-ckfinder';
+import { CKFinderUploadAdapter } from '@ckeditor/ckeditor5-adapter-ckfinder';
 import { CKFinder } from '@ckeditor/ckeditor5-ckfinder';
 
-export default class ClassicEditor extends ClassicEditorBase {}
+export default class ClassicEditor extends ClassicEditorBase { }
 
 ClassicEditor.builtinPlugins = [
     Essentials,
@@ -46,15 +46,16 @@ ClassicEditor.defaultConfig = {
     language: 'en'
 };
 
-
-ClassicEditor
-    // Note that you do not have to specify the plugin and toolbar configuration — using defaults from the build.
-    .create( document.querySelector( '#editor' ), {
-        licenseKey: 'GPL'
-    })
-    .then( editor => {
-        console.log( 'Editor was initialized', editor );
-    } )
-    .catch( error => {
-        console.error( error.stack );
-    } );
+if (typeof ClassicEditor !== 'undefined' && document.querySelector('#editor')) {
+    ClassicEditor
+        // Note that you do not have to specify the plugin and toolbar configuration — using defaults from the build.
+        .create(document.querySelector('#editor'), {
+            licenseKey: 'GPL'
+        })
+        .then(editor => {
+            console.log('Editor was initialized', editor);
+        })
+        .catch(error => {
+            console.error(error.stack);
+        });
+}

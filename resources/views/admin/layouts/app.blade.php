@@ -10,7 +10,7 @@
     <!-- Tailwind CSS hoặc Bootstrap -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    @vite(['resources/css/app.css', 'resources/js/admin.js'])
+    @vite(['resources/css/app.css', 'resources/css/admin.css', 'resources/js/admin.js'])
 
     @vite(['resources/css/ckeditor.css', 'resources/js/ckeditor.js'])
     @include('ckfinder::setup')
