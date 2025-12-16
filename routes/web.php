@@ -74,7 +74,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::patch('pages/{page}/toggle-status', [PageController::class, 'toggleStatus'])->name('pages.toggle-status');
 
     Route::resource('comments', CommentController::class)->except('create', 'store', 'edit', 'update', 'show');
-    Route::post('comments/{id}/approve', [CommentController::class, 'approve'])->name('comments.approve');
+    Route::post('comments/{comment}/approve', [CommentController::class, 'approve'])->name('comments.approve');
+    Route::patch('comments/{comment}/update-status', [CommentController::class, 'updateStatus'])->name('comments.update-status');
 
     Route::resource('contacts', ContactRequestController::class)->only(['index', 'show', 'destroy']);
 
