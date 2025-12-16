@@ -49,6 +49,9 @@ Route::group(['prefix' => 'ckfinder', 'middleware' => ['web', 'auth', 'ckfinder'
 Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
 
     // Dashboard - Tất cả users đã login
+    Route::get('/', function () {
+        return redirect()->route('admin.dashboard');
+    });
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Categories CRUD
