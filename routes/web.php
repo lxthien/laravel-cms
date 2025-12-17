@@ -99,6 +99,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         'update'
     ]);
 
+    // Tag Management
+    Route::resource('tags', App\Http\Controllers\Admin\TagController::class);
+
     // User Management - Chỉ admin
     Route::middleware(['role:admin'])->group(function () {
         Route::resource('users', UserController::class);
