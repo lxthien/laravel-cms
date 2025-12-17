@@ -13,15 +13,15 @@ class SettingController extends Controller
      */
     public function index()
     {
-        // Lấy settings theo nhóm, ví dụ nhóm "general" và "seo"
-        $groups = Setting::select('group')->distinct()->pluck('group');
+        // Redirect to the first available group
+        $firstGroup = Setting::select('group')->distinct()->orderBy('group')->value('group');
 
-        $settings = [];
-        foreach ($groups as $group) {
-            $settings[$group] = Setting::where('group', $group)->orderBy('key')->get();
+        if ($firstGroup) {
+            return redirect()->route('admin.settings.edit', $firstGroup);
         }
 
-        return view('admin.settings.index', compact('settings'));
+        // If no settings exist
+        return view('admin.settings.index', ['settings' => []]);
     }
 
     /**
@@ -29,13 +29,16 @@ class SettingController extends Controller
      */
     public function edit($group)
     {
+        // Get all groups for sidebar
+        $groups = Setting::select('group')->distinct()->orderBy('group')->pluck('group');
+
         $settings = Setting::where('group', $group)->orderBy('key')->get();
 
         if ($settings->isEmpty()) {
             return redirect()->route('admin.settings.index')->with('error', 'Nhóm cấu hình không tồn tại.');
         }
 
-        return view('admin.settings.edit', compact('settings', 'group'));
+        return view('admin.settings.edit', compact('settings', 'group', 'groups'));
     }
 
     /**
@@ -50,7 +53,7 @@ class SettingController extends Controller
 
             if ($setting->type == 'image' && $request->hasFile($key)) {
                 $path = $request->file($key)->store('settings', 'public');
-                
+
                 // Optionally: Xóa ảnh cũ
                 if ($setting->value && \Storage::disk('public')->exists($setting->value)) {
                     \Storage::disk('public')->delete($setting->value);
@@ -60,14 +63,16 @@ class SettingController extends Controller
                 continue;
             }
 
+            // Special handling for boolean fields: unchecked checkboxes are not sent in request
+            if ($setting->type == 'boolean') {
+                $value = $request->boolean($key) ? 1 : 0;
+                $setting->value = $value;
+                $setting->save();
+                continue;
+            }
+
             if ($request->has($key)) {
                 $value = $request->input($key);
-
-                // Với boolean checkbox, nếu không checked thì không có trong request
-                if ($setting->type == 'boolean') {
-                    $value = $value ? 1 : 0;
-                }
-
                 $setting->value = $value;
                 $setting->save();
             }

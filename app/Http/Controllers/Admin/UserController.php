@@ -10,9 +10,24 @@ use Illuminate\Support\Facades\Hash;
 class UserController extends Controller
 {
     // List all users
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::orderByDesc('created_at')->paginate(20);
+        $query = User::query();
+
+        // Search
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by Role
+        if ($role = $request->input('role')) {
+            $query->where('role', $role);
+        }
+
+        $users = $query->orderByDesc('created_at')->paginate(20);
         return view('admin.users.index', compact('users'));
     }
 
@@ -26,18 +41,18 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'     => 'required|max:150',
-            'email'    => 'required|email|unique:users,email',
+            'name' => 'required|max:150',
+            'email' => 'required|email|unique:users,email',
             'password' => 'required|confirmed|min:6',
-            'role'     => 'required|in:admin,editor,author,subscriber'
+            'role' => 'required|in:admin,editor,author,subscriber'
         ]);
 
         $user = User::create([
-            'name'     => $validated['name'],
-            'email'    => $validated['email'],
+            'name' => $validated['name'],
+            'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role'     => $validated['role'],
-            'status'   => true,
+            'role' => $validated['role'],
+            'status' => $request->boolean('status', true), // Default true for new users? Or as per form
         ]);
         // Optional: assign role with spatie/laravel-permission
         if (method_exists($user, 'assignRole')) {
@@ -56,11 +71,15 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
-            'name'   => 'required|max:150',
-            'email'  => "required|email|unique:users,email,{$user->id}",
-            'role'   => 'required|in:admin,editor,author,subscriber',
+            'name' => 'required|max:150',
+            'email' => "required|email|unique:users,email,{$user->id}",
+            'role' => 'required|in:admin,editor,author,subscriber',
             'status' => 'boolean',
         ]);
+
+        // Handle boolean status explicitly
+        $validated['status'] = $request->boolean('status');
+
         $user->update($validated);
 
         // Optional: update role with spatie/laravel-permission
