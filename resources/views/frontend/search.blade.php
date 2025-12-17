@@ -1,7 +1,7 @@
 @extends('frontend.layouts.app')
 
-@section('title', 'Tìm kiếm: ' . $query)
-@section('meta_description', 'Kết quả tìm kiếm cho: ' . $query)
+<x-seo-meta title="Kết quả tìm kiếm: {{ $query }}" description="Tìm kiếm nội dung liên quan đến {{ $query }}"
+    robots="noindex, follow" type="website" />
 
 @section('content')
     <div class="mb-6">

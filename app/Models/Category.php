@@ -23,6 +23,9 @@ class Category extends Model
         'image',
         'meta_title',
         'meta_description',
+        'meta_keywords',
+        'index',
+        'follow',
         'order',
         'status',
     ];
@@ -30,6 +33,8 @@ class Category extends Model
     protected $casts = [
         'status' => 'boolean',
         'order' => 'integer',
+        'index' => 'boolean',
+        'follow' => 'boolean',
     ];
 
     // Sluggable configuration
@@ -80,6 +85,23 @@ class Category extends Model
         return $this->children()->with('childrenRecursive');
     }
 
+    public function getSeoTitleAttribute()
+    {
+        return $this->meta_title ?: $this->name;
+    }
+
+    public function getSeoDescriptionAttribute()
+    {
+        return $this->meta_description ?: $this->description;
+    }
+
+    public function getRobotsMetaAttribute()
+    {
+        $index = $this->index ? 'index' : 'noindex';
+        $follow = $this->follow ? 'follow' : 'nofollow';
+        return "{$index}, {$follow}";
+    }
+
     /**
      * Get breadcrumb array: [Parent > Child > Current]
      */
@@ -97,7 +119,7 @@ class Category extends Model
         // Remove the current category itself from the list if you want 
         // the breadcrumb to be only "Parents", but typically you include it 
         // as the last active item. We will keep it here.
-        
+
         return $breadcrumb;
     }
 

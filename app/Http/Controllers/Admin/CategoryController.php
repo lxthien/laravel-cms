@@ -51,6 +51,13 @@ class CategoryController extends Controller
             $request->merge(['slug' => Str::slug($request->name)]);
         }
 
+        // Handle boolean fields (checkboxes)
+        $request->merge([
+            'index' => $request->boolean('index'),
+            'follow' => $request->boolean('follow'),
+            'status' => $request->boolean('status'),
+        ]);
+
         // Validation
         $validated = $request->validate([
             'name' => 'required|max:255',
@@ -60,6 +67,9 @@ class CategoryController extends Controller
             'image' => 'nullable|image|max:2048',
             'meta_title' => 'nullable|max:255',
             'meta_description' => 'nullable',
+            'meta_keywords' => 'nullable|max:255',
+            'index' => 'boolean',
+            'follow' => 'boolean',
             'order' => 'nullable|integer',
             'status' => 'boolean',
         ]);
@@ -123,6 +133,13 @@ class CategoryController extends Controller
             $request->merge(['slug' => Str::slug($request->name)]);
         }
 
+        // Handle boolean fields (checkboxes)
+        $request->merge([
+            'index' => $request->boolean('index'),
+            'follow' => $request->boolean('follow'),
+            'status' => $request->boolean('status'),
+        ]);
+
         // Validation
         $validated = $request->validate([
             'name' => 'required|max:255',
@@ -132,6 +149,9 @@ class CategoryController extends Controller
             'image' => 'nullable|image|max:2048',
             'meta_title' => 'nullable|max:255',
             'meta_description' => 'nullable',
+            'meta_keywords' => 'nullable|max:255',
+            'index' => 'boolean',
+            'follow' => 'boolean',
             'order' => 'nullable|integer',
             'status' => 'boolean',
         ]);

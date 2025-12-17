@@ -11,19 +11,19 @@ class PostController extends Controller
     {
         // Eager load relationships
         $post->load(['user', 'categories', 'tags', 'comments.user']);
-        
+
         // Increment view count
         $post->increment('view_count');
-        
+
         // Get related posts từ primary category
         $primaryCategory = $post->primaryCategory();
-        
+
         $relatedPosts = collect();
-        
+
         if ($primaryCategory) {
             $relatedPosts = Post::published()
                 ->where('id', '!=', $post->id)
-                ->whereHas('categories', function($query) use ($primaryCategory) {
+                ->whereHas('categories', function ($query) use ($primaryCategory) {
                     $query->where('categories.id', $primaryCategory->id);
                 })
                 ->with(['categories'])
@@ -35,29 +35,32 @@ class PostController extends Controller
         $comments = $post->comments()
             ->whereNull('parent_id')
             ->approved()
-            ->with(['replies' => function($q) {
-                $q->approved();
-            }, 'user'])
+            ->with([
+                'replies' => function ($q) {
+                    $q->approved();
+                },
+                'user'
+            ])
             ->orderBy('created_at')
             ->get();
-        
+
         // Breadcrumb
         $breadcrumbs = [
             ['title' => 'Trang Chủ', 'url' => route('home')]
         ];
-        
+
         foreach ($post->getBreadcrumb() as $cat) {
             $breadcrumbs[] = [
                 'title' => $cat->name,
-                'url'   => url($cat->full_path)
+                'url' => url($cat->full_path)
             ];
         }
-        
+
         $breadcrumbs[] = [
             'title' => $post->title,
-            'url'   => ''
+            'url' => ''
         ];
-        
-        return view('frontend.posts.show', compact('post', 'relatedPosts', 'comments'));
+
+        return view('frontend.posts.show', compact('post', 'relatedPosts', 'comments', 'breadcrumbs'));
     }
 }

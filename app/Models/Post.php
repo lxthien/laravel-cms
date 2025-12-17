@@ -28,11 +28,16 @@ class Post extends Model
         'meta_title',
         'meta_description',
         'meta_keywords',
+        'canonical_url',
+        'index',
+        'follow',
     ];
 
     protected $casts = [
         'published_at' => 'datetime',
         'view_count' => 'integer',
+        'index' => 'boolean',
+        'follow' => 'boolean',
     ];
 
     // Sluggable configuration
@@ -52,7 +57,7 @@ class Post extends Model
     }
 
     // ==== Relationships ====
-    
+
     /**
      * Many-to-Many với Categories
      */
@@ -90,8 +95,8 @@ class Post extends Model
     public function scopePublished($query)
     {
         return $query->where('status', 'published')
-                     ->whereNotNull('published_at')
-                     ->where('published_at', '<=', now());
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now());
     }
 
     public function scopeDraft($query)
@@ -112,9 +117,35 @@ class Post extends Model
 
     public function isPublished(): bool
     {
-        return $this->status === 'published' && 
-               $this->published_at && 
-               $this->published_at <= now();
+        return $this->status === 'published' &&
+            $this->published_at &&
+            $this->published_at <= now();
+    }
+
+    /**
+     * Get SEO title (fallback to title if empty)
+     */
+    public function getSeoTitleAttribute()
+    {
+        return $this->meta_title ?: $this->title;
+    }
+
+    /**
+     * Get SEO description (fallback to excerpt)
+     */
+    public function getSeoDescriptionAttribute()
+    {
+        return $this->meta_description ?: $this->excerpt;
+    }
+
+    /**
+     * Get robots meta
+     */
+    public function getRobotsMetaAttribute()
+    {
+        $index = $this->index ? 'index' : 'noindex';
+        $follow = $this->follow ? 'follow' : 'nofollow';
+        return "{$index}, {$follow}";
     }
 
     /**
@@ -127,15 +158,15 @@ class Post extends Model
         return Attribute::make(
             get: function () {
                 $primaryCategory = $this->primaryCategory();
-                
+
                 // Nếu không có primary category, chỉ trả về slug của post
                 if (!$primaryCategory) {
                     return $this->slug;
                 }
-                
+
                 // Lấy full path của primary category
                 $categoryPath = $primaryCategory->full_path;
-                
+
                 // Kết hợp: category-path/post-slug
                 return $categoryPath . '/' . $this->slug;
             }

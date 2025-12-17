@@ -1,8 +1,14 @@
 @extends('frontend.layouts.app')
 
-@section('title', $page->meta_title ?? $page->title)
-@section('meta_description', $page->meta_description ?? $page->excerpt)
-@section('meta_keywords', $page->meta_keywords)
+<x-seo-meta
+    :title="$page->meta_title ?: $page->title"
+    :description="$page->meta_description ?: Str::limit(strip_tags($page->content), 155)"
+    :keywords="$page->meta_keywords"
+    :canonical-url="url($page->slug)"
+    :image="$page->featured_image ? asset('storage/' . $page->featured_image) : null"
+    robots="index, follow"
+    type="website"
+/>
 
 @section('content')
     <!-- Breadcrumbs -->

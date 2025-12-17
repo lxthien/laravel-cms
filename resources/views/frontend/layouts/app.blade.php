@@ -6,17 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'Trang Chủ') - {{ config('app.name', 'CMS Website') }}</title>
+    {{-- SEO Meta được inject từ child views --}}
+    @stack('seo-meta')
 
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="@yield('meta_description', 'Website tin tức công nghệ')">
-    <meta name="keywords" content="@yield('meta_keywords', 'laravel, php, tin tức')">
-
-    <!-- Open Graph -->
-    <meta property="og:title" content="@yield('og_title', config('app.name'))">
-    <meta property="og:description" content="@yield('og_description', 'Website tin tức')">
-    <meta property="og:image" content="@yield('og_image', asset('images/default-og.jpg'))">
-    <meta property="og:url" content="{{ url()->current() }}">
+    {{-- Schema.org JSON-LD --}}
+    @hasSection('schema')
+        @yield('schema')
+    @endif
 
     <!-- Styles -->
     <script src="https://cdn.tailwindcss.com"></script>
