@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\MenuItemController;
 use App\Http\Controllers\Admin\TagController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\RedirectController;
 use CKSource\CKFinderBridge\Controller\CKFinderController;
 
 /*
@@ -109,6 +110,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
 
     // Role Management
     Route::resource('roles', RoleController::class)->middleware('role:admin');
+
+    // Redirect Manager
+    Route::resource('redirects', RedirectController::class);
+    Route::post('redirects/bulk-delete', [RedirectController::class, 'bulkDelete'])->name('redirects.bulk-delete');
+    Route::post('redirects/{redirect}/toggle-status', [RedirectController::class, 'toggleStatus'])->name('redirects.toggle-status');
+    Route::get('redirects-export', [RedirectController::class, 'exportCsv'])->name('redirects.export');
+    Route::post('redirects-import', [RedirectController::class, 'importCsv'])->name('redirects.import');
 
     // Media Manager
     Route::get('/media', [MediaController::class, 'index'])->name('media.index');
