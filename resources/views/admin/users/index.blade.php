@@ -39,10 +39,11 @@
                     <select name="role"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
                         <option value="">Tất cả</option>
-                        <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-                        <option value="editor" {{ request('role') == 'editor' ? 'selected' : '' }}>Editor</option>
-                        <option value="author" {{ request('role') == 'author' ? 'selected' : '' }}>Author</option>
-                        <option value="subscriber" {{ request('role') == 'subscriber' ? 'selected' : '' }}>Subscriber</option>
+                        @foreach(\Spatie\Permission\Models\Role::all() as $role)
+                            <option value="{{ $role->name }}" {{ request('role') == $role->name ? 'selected' : '' }}>
+                                {{ ucfirst($role->name) }}
+                            </option>
+                        @endforeach
                     </select>
                 </div>
 
@@ -90,16 +91,18 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
+                                        @php $roleName = $user->roles->first()?->name; @endphp
                                         <span
                                             class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
-                                            {{ $user->role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                        ($user->role === 'editor' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800') }}">
-                                            {{ $user->role }}
+                                                            {{ $roleName === 'admin' ? 'bg-purple-100 text-purple-800' :
+                        ($roleName === 'editor' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800') }}">
+                                            {{ $roleName ?? '---' }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                            {{ $user->status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                        <span
+                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                                            {{ $user->status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                                             {{ $user->status ? 'Active' : 'Inactive' }}
                                         </span>
                                     </td>

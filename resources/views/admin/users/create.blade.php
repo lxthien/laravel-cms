@@ -66,11 +66,11 @@
                             <select name="role"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
                                 required>
-                                <option value="subscriber" {{ old('role') == 'subscriber' ? 'selected' : '' }}>Subscriber
-                                </option>
-                                <option value="author" {{ old('role') == 'author' ? 'selected' : '' }}>Author</option>
-                                <option value="editor" {{ old('role') == 'editor' ? 'selected' : '' }}>Editor</option>
-                                <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+                                @foreach($roles as $role)
+                                    <option value="{{ $role }}" {{ old('role') == $role ? 'selected' : '' }}>
+                                        {{ ucfirst($role) }}
+                                    </option>
+                                @endforeach
                             </select>
                             @error('role')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
                         </div>

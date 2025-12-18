@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\MenuItemController;
 use App\Http\Controllers\Admin\TagController;
 use App\Http\Controllers\Admin\MediaController;
+use App\Http\Controllers\Admin\RoleController;
 use CKSource\CKFinderBridge\Controller\CKFinderController;
 
 /*
@@ -70,10 +71,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::resource('categories', CategoryController::class);
     // Route mới để update order
     Route::post('categories/{category}/update-order', [CategoryController::class, 'updateOrder'])
-        ->name('categories.update-order');
+        ->name('categories.update-order')->middleware('permission:category-edit');
     // Update status (mới)
     Route::post('categories/{category}/update-status', [CategoryController::class, 'updateStatus'])
-        ->name('categories.update-status');
+        ->name('categories.update-status')->middleware('permission:category-edit');
 
     // Posts
     Route::resource('posts', PostController::class);
@@ -82,8 +83,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
 
     // Pages Management
     Route::resource('pages', PageController::class);
-    Route::patch('pages/{page}/update-order', [PageController::class, 'updateOrder'])->name('pages.update-order');
-    Route::patch('pages/{page}/toggle-status', [PageController::class, 'toggleStatus'])->name('pages.toggle-status');
+    Route::patch('pages/{page}/update-order', [PageController::class, 'updateOrder'])
+        ->name('pages.update-order')->middleware('permission:post-edit');
+    Route::patch('pages/{page}/toggle-status', [PageController::class, 'toggleStatus'])
+        ->name('pages.toggle-status')->middleware('permission:post-edit');
 
     Route::resource('comments', CommentController::class)->except('create', 'store', 'edit', 'update', 'show');
     Route::post('comments/{comment}/approve', [CommentController::class, 'approve'])->name('comments.approve');
@@ -99,10 +102,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         'index',
         'edit',
         'update'
-    ]);
+    ])->middleware('permission:settings-edit');
 
     // Tag Management
     Route::resource('tags', TagController::class);
+
+    // Role Management
+    Route::resource('roles', RoleController::class)->middleware('role:admin');
 
     // Media Manager
     Route::get('/media', [MediaController::class, 'index'])->name('media.index');
