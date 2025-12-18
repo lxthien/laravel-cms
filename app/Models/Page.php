@@ -26,12 +26,14 @@ class Page extends Model
         'is_homepage',
         'parent_id',
         'user_id',
+        'gallery',
     ];
 
     protected $casts = [
         'show_in_menu' => 'boolean',
         'is_homepage' => 'boolean',
         'order' => 'integer',
+        'gallery' => 'array',
     ];
 
     // Relationships

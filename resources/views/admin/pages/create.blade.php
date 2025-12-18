@@ -146,18 +146,41 @@
                     {{-- Featured Image --}}
                     <div class="bg-white rounded-lg shadow p-6">
                         <label class="block text-sm font-bold text-gray-700 mb-2">Ảnh đại diện</label>
-                        <div class="border-2 border-dashed border-gray-300 rounded p-4 text-center">
-                            <div id="image-preview" class="hidden mb-2">
-                                <img src="" alt="Preview" class="max-w-full h-auto rounded">
-                            </div>
-                            <input type="file" name="featured_image" id="featured_image" accept="image/*" class="hidden">
-                            <button type="button" onclick="document.getElementById('featured_image').click()"
-                                class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded text-sm">
-                                Chọn ảnh
-                            </button>
-                            <p class="text-xs text-gray-500 mt-2">PNG, JPG, GIF (Max: 2MB)</p>
+                        <div id="featured_image_preview" class="mb-3 hidden">
+                            <img src="" class="max-w-full h-auto rounded shadow-sm border border-gray-200">
                         </div>
-                        <input type="hidden" name="featured_image" id="featured_image_path">
+
+                        <input type="hidden" name="featured_image" id="featured_image_path" value="{{ old('featured_image') }}">
+                        
+                        <div class="flex flex-col gap-2">
+                            <button type="button" onclick="openMediaManager()" 
+                                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors">
+                                <i class="fas fa-images mr-1"></i> Chọn từ Media
+                            </button>
+                            <button type="button" onclick="removeFeaturedImage()" id="btn_remove_image"
+                                class="bg-red-100 text-red-600 hover:bg-red-200 px-4 py-2 rounded text-sm font-medium transition-colors hidden">
+                                <i class="fas fa-trash-alt mr-1"></i> Xóa ảnh
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Gallery Images --}}
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Gallery Images</label>
+                        
+                        <div id="gallery_preview" class="grid grid-cols-3 gap-2 mb-3">
+                            {{-- Selected gallery images will appear here --}}
+                        </div>
+
+                        <div id="gallery_inputs">
+                            {{-- Hidden inputs for gallery paths --}}
+                        </div>
+
+                        <button type="button" onclick="openGalleryManager()"
+                            class="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors">
+                            <i class="fas fa-photo-video mr-1"></i> Thêm ảnh Gallery
+                        </button>
+                        <p class="text-xs text-gray-500 mt-2">Có thể chọn nhiều hình ảnh cùng lúc.</p>
                     </div>
 
                     {{-- Parent Page --}}
@@ -208,3 +231,84 @@
         </form>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    function openMediaManager() {
+        MediaManager.open(function(media) {
+            document.getElementById('featured_image_path').value = media.file_path;
+            
+            const preview = document.getElementById('featured_image_preview');
+            preview.querySelector('img').src = media.url;
+            preview.classList.remove('hidden');
+            
+            document.getElementById('btn_remove_image').classList.remove('hidden');
+        }, false);
+    }
+
+    function removeFeaturedImage() {
+        document.getElementById('featured_image_path').value = '';
+        document.getElementById('featured_image_preview').classList.add('hidden');
+        document.getElementById('btn_remove_image').classList.add('hidden');
+    }
+
+    // Gallery Management
+    let galleryImages = [];
+
+    function openGalleryManager() {
+        MediaManager.open(function (mediaList) {
+            // mediaList is an array when multiple = true
+            mediaList.forEach(media => {
+                // Avoid duplicates
+                if (!galleryImages.some(img => img.file_path === media.file_path)) {
+                    galleryImages.push({
+                        file_path: media.file_path,
+                        url: media.url
+                    });
+                }
+            });
+            renderGallery();
+        }, true); // true = multiple selection
+    }
+
+    function renderGallery() {
+        const preview = document.getElementById('gallery_preview');
+        const inputs = document.getElementById('gallery_inputs');
+        
+        if (!preview || !inputs) return;
+
+        preview.innerHTML = '';
+        inputs.innerHTML = '';
+
+        galleryImages.forEach((img, index) => {
+            // Render preview
+            const col = document.createElement('div');
+            col.className = 'relative group';
+            col.innerHTML = `
+                <div class="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 h-24">
+                    <img src="${img.url}" class="h-full w-full object-cover object-center">
+                </div>
+                <button type="button" onclick="removeFromGallery(${index})" 
+                    class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            `;
+            preview.appendChild(col);
+
+            // Render hidden input
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'gallery[]';
+            input.value = img.file_path;
+            inputs.appendChild(input);
+        });
+    }
+
+    function removeFromGallery(index) {
+        galleryImages.splice(index, 1);
+        renderGallery();
+    }
+</script>
+@endpush

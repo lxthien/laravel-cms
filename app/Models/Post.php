@@ -31,6 +31,7 @@ class Post extends Model
         'canonical_url',
         'index',
         'follow',
+        'gallery',
     ];
 
     protected $casts = [
@@ -38,6 +39,7 @@ class Post extends Model
         'view_count' => 'integer',
         'index' => 'boolean',
         'follow' => 'boolean',
+        'gallery' => 'array',
     ];
 
     // Sluggable configuration

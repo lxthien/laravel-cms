@@ -73,11 +73,24 @@ class PageController extends Controller
             'show_in_menu' => 'boolean',
             'is_homepage' => 'boolean',
             'parent_id' => 'nullable|exists:pages,id',
+            'gallery' => 'nullable|array',
         ]);
 
         $validated['user_id'] = Auth::id();
         $validated['show_in_menu'] = $request->has('show_in_menu');
         $validated['is_homepage'] = $request->has('is_homepage');
+
+        // Handle featured image
+        if ($request->hasFile('featured_image')) {
+            $validated['featured_image'] = $request->file('featured_image')
+                ->store('pages', 'public');
+        } elseif ($request->filled('featured_image') && is_string($request->featured_image)) {
+            $path = $request->featured_image;
+            if (str_starts_with($path, 'storage/')) {
+                $path = substr($path, 8);
+            }
+            $validated['featured_image'] = $path;
+        }
 
         Page::create($validated);
 
@@ -132,10 +145,27 @@ class PageController extends Controller
             'show_in_menu' => 'boolean',
             'is_homepage' => 'boolean',
             'parent_id' => 'nullable|exists:pages,id',
+            'gallery' => 'nullable|array',
         ]);
 
         $validated['show_in_menu'] = $request->has('show_in_menu');
         $validated['is_homepage'] = $request->has('is_homepage');
+
+        // Handle featured image
+        if ($request->hasFile('featured_image')) {
+            // Delete old image
+            if ($page->featured_image && \Illuminate\Support\Facades\Storage::disk('public')->exists($page->featured_image)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($page->featured_image);
+            }
+            $validated['featured_image'] = $request->file('featured_image')
+                ->store('pages', 'public');
+        } elseif ($request->filled('featured_image') && is_string($request->featured_image)) {
+            $path = $request->featured_image;
+            if (str_starts_with($path, 'storage/')) {
+                $path = substr($path, 8);
+            }
+            $validated['featured_image'] = $path;
+        }
 
         $page->update($validated);
 

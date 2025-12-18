@@ -141,21 +141,49 @@
 
                     <!-- Featured Image -->
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="featured_image">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">
                             Ảnh Đại Diện
                         </label>
-                        @if (!empty($post->featured_image))
-                            <div class="mb-2">
-                                <img src="{{ asset('storage/' . $post->featured_image) }}" alt="Ảnh đại diện hiện tại"
-                                    class="max-w-xs max-h-48 rounded shadow border">
-                                <p class="text-xs text-gray-500 mt-1">Ảnh đang sử dụng</p>
-                            </div>
-                        @endif
-                        <input type="file" name="featured_image" id="featured_image" accept="image/*"
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
-                        @error('featured_image')
-                            <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
-                        @enderror
+                        
+                        <div id="featured_image_preview" class="mb-3 {{ empty($post->featured_image) ? 'hidden' : '' }}">
+                            <img src="{{ !empty($post->featured_image) ? asset('storage/' . $post->featured_image) : '' }}" 
+                                 class="max-w-full h-auto rounded shadow-sm border border-gray-200">
+                        </div>
+
+                        <input type="hidden" name="featured_image" id="featured_image_path" value="{{ $post->featured_image }}">
+                        
+                        <div class="flex gap-2">
+                            <button type="button" onclick="openMediaManager()" 
+                                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors">
+                                <i class="fas fa-images mr-1"></i> Chọn từ Media
+                            </button>
+                            <button type="button" onclick="removeFeaturedImage()" id="btn_remove_image"
+                                class="bg-red-100 text-red-600 hover:bg-red-200 px-4 py-2 rounded text-sm font-medium transition-colors {{ empty($post->featured_image) ? 'hidden' : '' }}">
+                                <i class="fas fa-trash-alt mr-1"></i> Xóa ảnh
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">Dung lượng tối đa: 2MB. Định dạng: JPG, PNG, GIF, WebP</p>
+                    </div>
+
+                    <!-- Gallery Images -->
+                    <div class="mb-4 border-t pt-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">
+                            Gallery Images
+                        </label>
+
+                        <div id="gallery_preview" class="grid grid-cols-3 gap-2 mb-3">
+                            <!-- Selected gallery images will appear here -->
+                        </div>
+
+                        <div id="gallery_inputs">
+                            <!-- Hidden inputs for gallery paths -->
+                        </div>
+
+                        <button type="button" onclick="openGalleryManager()"
+                            class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors">
+                            <i class="fas fa-photo-video mr-1"></i> Thêm ảnh Gallery
+                        </button>
+                        <p class="text-xs text-gray-500 mt-2">Có thể chọn nhiều hình ảnh cùng lúc.</p>
                     </div>
 
                     <!-- Status -->
@@ -202,7 +230,94 @@
 
 @push('scripts')
 <script>
-    // Set current primary category ID for admin.js
     window.currentPrimaryCategoryId = {{ $post->primaryCategory() ? $post->primaryCategory()->id : 'null' }};
+
+    function openMediaManager() {
+        MediaManager.open(function(media) {
+            // Callback: media is the selected media object
+            document.getElementById('featured_image_path').value = media.file_path;
+            
+            const preview = document.getElementById('featured_image_preview');
+            preview.querySelector('img').src = media.url;
+            preview.classList.remove('hidden');
+            
+            document.getElementById('btn_remove_image').classList.remove('hidden');
+        }, false); // false = single selection
+    }
+
+    function removeFeaturedImage() {
+        document.getElementById('featured_image_path').value = '';
+        document.getElementById('featured_image_preview').classList.add('hidden');
+        document.getElementById('btn_remove_image').classList.add('hidden');
+    }
+
+    // Gallery Management
+    let galleryImages = {!! json_encode(array_map(function($path) {
+        return [
+            'file_path' => $path,
+            'url' => asset('storage/' . $path)
+        ];
+    }, $post->gallery ?? [])) !!};
+
+    // Initial render
+    document.addEventListener('DOMContentLoaded', function() {
+        renderGallery();
+    });
+
+    function openGalleryManager() {
+        MediaManager.open(function (mediaList) {
+            // mediaList is an array when multiple = true
+            mediaList.forEach(media => {
+                // Avoid duplicates
+                if (!galleryImages.some(img => img.file_path === media.file_path)) {
+                    galleryImages.push({
+                        file_path: media.file_path,
+                        url: media.url
+                    });
+                }
+            });
+            renderGallery();
+        }, true); // true = multiple selection
+    }
+
+    function renderGallery() {
+        const preview = document.getElementById('gallery_preview');
+        const inputs = document.getElementById('gallery_inputs');
+        
+        if (!preview || !inputs) return;
+
+        preview.innerHTML = '';
+        inputs.innerHTML = '';
+
+        galleryImages.forEach((img, index) => {
+            // Render preview
+            const col = document.createElement('div');
+            col.className = 'relative group';
+            col.innerHTML = `
+                <div class="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 h-24">
+                    <img src="${img.url}" class="h-full w-full object-cover object-center">
+                </div>
+                <button type="button" onclick="removeFromGallery(${index})" 
+                    class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            `;
+            preview.appendChild(col);
+
+            // Render hidden input
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'gallery[]';
+            input.value = img.file_path;
+            inputs.appendChild(input);
+        });
+    }
+
+    function removeFromGallery(index) {
+        galleryImages.splice(index, 1);
+        renderGallery();
+    }
 </script>
 @endpush

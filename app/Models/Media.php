@@ -26,6 +26,13 @@ class Media extends Model
         'file_size' => 'integer',
     ];
 
+    protected $appends = [
+        'url',
+        'thumbnail',
+        'name',
+        'human_readable_size',
+    ];
+
     // Relationships
     public function user(): BelongsTo
     {
@@ -54,15 +61,43 @@ class Media extends Model
         return asset('storage/' . $this->file_path);
     }
 
+    public function getUrl($conversion = ''): string
+    {
+        return $this->getFullUrl();
+    }
+
+    public function getUrlAttribute(): string
+    {
+        return $this->getFullUrl();
+    }
+
+    public function getThumbnailAttribute(): string
+    {
+        if ($this->file_type === 'image') {
+            return $this->getFullUrl();
+        }
+        return ''; // Or a default icon URL
+    }
+
+    public function getNameAttribute(): string
+    {
+        return $this->file_name;
+    }
+
+    public function getHumanReadableSizeAttribute(): string
+    {
+        return $this->getFormattedSize();
+    }
+
     public function getFormattedSize(): string
     {
         $bytes = $this->file_size;
         $units = ['B', 'KB', 'MB', 'GB'];
-        
-        for ($i = 0; $bytes > 1024; $i++) {
+
+        for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
             $bytes /= 1024;
         }
-        
+
         return round($bytes, 2) . ' ' . $units[$i];
     }
 }

@@ -13,6 +13,8 @@ use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\ContactRequestController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\MenuItemController;
+use App\Http\Controllers\Admin\TagController;
+use App\Http\Controllers\Admin\MediaController;
 use CKSource\CKFinderBridge\Controller\CKFinderController;
 
 /*
@@ -100,7 +102,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     ]);
 
     // Tag Management
-    Route::resource('tags', App\Http\Controllers\Admin\TagController::class);
+    Route::resource('tags', TagController::class);
+
+    // Media Manager
+    Route::get('/media', [MediaController::class, 'index'])->name('media.index');
+    Route::post('/media/upload', [MediaController::class, 'upload'])->name('media.upload');
+    Route::get('/media/{id}', [MediaController::class, 'show'])->name('media.show');
+    Route::put('/media/{id}', [MediaController::class, 'update'])->name('media.update');
+    Route::delete('/media/{id}', [MediaController::class, 'destroy'])->name('media.destroy');
 
     // User Management - Chỉ admin
     Route::middleware(['role:admin'])->group(function () {

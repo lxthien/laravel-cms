@@ -59,6 +59,7 @@
         </div>
     </div>
 
+    @include('admin.partials.media-manager')
     @stack('scripts')
 </body>
 

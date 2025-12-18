@@ -91,19 +91,27 @@ class PostController extends Controller
             ],
             'excerpt' => 'nullable',
             'content' => 'required',
-            'featured_image' => 'nullable|image|max:2048',
+            'featured_image' => 'nullable',
             'status' => 'required|in:draft,published,pending',
             'published_at' => 'nullable|date',
             'meta_title' => 'nullable|max:255',
             'meta_description' => 'nullable',
             'meta_keywords' => 'nullable',
             'tags' => 'nullable|array',
+            'gallery' => 'nullable|array',
         ]);
 
         // Upload featured image
         if ($request->hasFile('featured_image')) {
             $validated['featured_image'] = $request->file('featured_image')
                 ->store('posts', 'public');
+        } elseif ($request->filled('featured_image') && is_string($request->featured_image)) {
+            // Handle media manager selection (strip storage/ prefix if present)
+            $path = $request->featured_image;
+            if (str_starts_with($path, 'storage/')) {
+                $path = substr($path, 8);
+            }
+            $validated['featured_image'] = $path;
         }
 
         // Set user_id
@@ -252,13 +260,14 @@ class PostController extends Controller
             ],
             'excerpt' => 'nullable',
             'content' => 'required',
-            'featured_image' => 'nullable|image|max:2048',
+            'featured_image' => 'nullable',
             'status' => 'required|in:draft,published,pending',
             'published_at' => 'nullable|date',
             'meta_title' => 'nullable|max:255',
             'meta_description' => 'nullable',
             'meta_keywords' => 'nullable',
             'tags' => 'nullable|array',
+            'gallery' => 'nullable|array',
         ]);
 
         // Upload new featured image
@@ -270,6 +279,13 @@ class PostController extends Controller
 
             $validated['featured_image'] = $request->file('featured_image')
                 ->store('posts', 'public');
+        } elseif ($request->filled('featured_image') && is_string($request->featured_image)) {
+            // Handle media manager selection
+            $path = $request->featured_image;
+            if (str_starts_with($path, 'storage/')) {
+                $path = substr($path, 8);
+            }
+            $validated['featured_image'] = $path;
         }
 
         // Update published_at
