@@ -22,9 +22,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         view()->composer('*', function ($view) {
-            $headerMenu = Menu::with('items.children')->where('location', 'header')->first();
-            $footerMenu = Menu::with('items.children')->where('location', 'footer')->first();
-            
+            $headerMenu = Menu::with('rootItems.children.children')->where('location', 'header')->first();
+            $footerMenu = Menu::with('rootItems.children.children')->where('location', 'footer')->first();
+
             // Truyền vào view toàn cục
             $view->with(compact('headerMenu', 'footerMenu'));
         });

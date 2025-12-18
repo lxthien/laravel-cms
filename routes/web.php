@@ -96,6 +96,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::resource('contacts', ContactRequestController::class)->only(['index', 'show', 'destroy']);
 
     Route::resource('menus', MenuController::class);
+    Route::post('menus/{menu}/update-structure', [MenuController::class, 'updateStructure'])->name('menus.update-structure');
     Route::resource('menu-items', MenuItemController::class);
 
     // Setting

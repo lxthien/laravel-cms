@@ -7,7 +7,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Admin Panel') - CMS Website</title>
 
-    <!-- Tailwind CSS hoặc Bootstrap -->
+    <!-- jQuery and Tailwind CSS -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
     @vite(['resources/css/app.css', 'resources/css/admin.css', 'resources/js/admin.js'])

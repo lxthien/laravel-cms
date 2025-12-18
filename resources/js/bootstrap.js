@@ -2,7 +2,8 @@ import 'bootstrap';
 
 // Import jQuery
 import jQuery from 'jquery';
-window.$ = window.jQuery = jQuery;
+window.jQuery = window.jQuery || jQuery;
+window.$ = window.jQuery;
 
 // Import Select2
 import select2 from 'select2';

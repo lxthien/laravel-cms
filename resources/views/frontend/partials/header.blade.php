@@ -63,7 +63,7 @@
 
         <!-- Main Navigation -->
         <nav class="py-4">
-            <x-menu :items="$headerMenu ? $headerMenu->items : collect()" />
+            <x-menu :items="$headerMenu ? $headerMenu->rootItems : collect()" />
         </nav>
     </div>
 </header>

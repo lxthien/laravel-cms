@@ -80,9 +80,6 @@ class Page extends Model
     // Accessor
     public function getFullPathAttribute()
     {
-        if ($this->parent_id) {
-            return $this->parent->full_path . '/' . $this->slug;
-        }
         return $this->slug;
     }
 
