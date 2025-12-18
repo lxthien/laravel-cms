@@ -184,38 +184,52 @@
                         <p class="text-xs text-gray-500 mt-2">Có thể chọn nhiều hình ảnh cùng lúc.</p>
                     </div>
 
-                    <!-- Status -->
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="status">
-                            Trạng Thái <span class="text-red-500">*</span>
-                        </label>
-                        <select name="status" id="status" required
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
-                            <option value="draft" {{ old('status') == 'draft' ? 'selected' : '' }}>Draft</option>
-                            <option value="published" {{ old('status') == 'published' ? 'selected' : '' }}>Published</option>
-                            <option value="pending" {{ old('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                        </select>
-                    </div>
+                    <!-- Publishing Card -->
+                    <div class="bg-gray-50 rounded-lg p-4 border mb-4">
+                        <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-4 pb-2 border-b">
+                            Publishing
+                        </h3>
 
-                    <!-- Published At -->
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="published_at">
-                            Ngày Đăng
-                        </label>
-                        <input type="datetime-local" name="published_at" id="published_at" value="{{ old('published_at') }}"
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
-                    </div>
+                        <!-- Status -->
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-xs font-bold mb-1" for="status">
+                                Trạng Thái <span class="text-red-500">*</span>
+                            </label>
+                            <select name="status" id="status" required
+                                class="w-full border rounded py-2 px-3 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 @error('status') border-red-500 @enderror">
+                                <option value="draft" {{ old('status') == 'draft' ? 'selected' : '' }}>Draft</option>
+                                <option value="published" {{ old('status', 'published') == 'published' ? 'selected' : '' }}>
+                                    Published</option>
+                            </select>
+                            @error('status')
+                                <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
 
-                    <!-- Buttons -->
-                    <div class="flex flex-col gap-2 mt-6">
-                        <button type="submit"
-                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full">
-                            Đăng Bài
-                        </button>
-                        <a href="{{ route('admin.posts.index') }}"
-                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-center w-full">
-                            Hủy
-                        </a>
+                        <!-- Published At -->
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-xs font-bold mb-1" for="published_at">
+                                Ngày Đăng (Để trống = Ngay bây giờ)
+                            </label>
+                            <input type="datetime-local" name="published_at" id="published_at"
+                                value="{{ old('published_at') }}"
+                                class="w-full border rounded py-2 px-3 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 @error('published_at') border-red-500 @enderror">
+                            @error('published_at')
+                                <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-col gap-2 pt-2">
+                            <button type="submit"
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm transition-colors">
+                                <i class="fas fa-paper-plane mr-1"></i> Đăng Bài
+                            </button>
+                            <a href="{{ route('admin.posts.index') }}"
+                                class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-bold py-2 px-4 rounded text-sm text-center transition-colors">
+                                Hủy
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -286,7 +300,7 @@
         function renderGallery() {
             const preview = document.getElementById('gallery_preview');
             const inputs = document.getElementById('gallery_inputs');
-            
+
             preview.innerHTML = '';
             inputs.innerHTML = '';
 
@@ -295,16 +309,16 @@
                 const col = document.createElement('div');
                 col.className = 'relative group';
                 col.innerHTML = `
-                    <div class="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 h-24">
-                        <img src="${img.url}" class="h-full w-full object-cover object-center">
-                    </div>
-                    <button type="button" onclick="removeFromGallery(${index})" 
-                        class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                `;
+                        <div class="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 h-24">
+                            <img src="${img.url}" class="h-full w-full object-cover object-center">
+                        </div>
+                        <button type="button" onclick="removeFromGallery(${index})" 
+                            class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    `;
                 preview.appendChild(col);
 
                 // Render hidden input

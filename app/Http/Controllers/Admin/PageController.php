@@ -92,6 +92,11 @@ class PageController extends Controller
             $validated['featured_image'] = $path;
         }
 
+        // Set published_at based on status
+        if ($validated['status'] === 'published') {
+            $validated['published_at'] = $validated['published_at'] ?? now();
+        }
+
         Page::create($validated);
 
         return redirect()->route('admin.pages.index')
@@ -165,6 +170,11 @@ class PageController extends Controller
                 $path = substr($path, 8);
             }
             $validated['featured_image'] = $path;
+        }
+
+        // Update published_at based on status
+        if ($validated['status'] === 'published') {
+            $validated['published_at'] = $validated['published_at'] ?? ($page->published_at ?? now());
         }
 
         $page->update($validated);

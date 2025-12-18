@@ -117,12 +117,12 @@ class PostController extends Controller
         // Set user_id
         $validated['user_id'] = auth()->id();
 
-        // Set published_at nếu status là published
-        if ($validated['status'] === 'published' && empty($validated['published_at'])) {
-            $validated['published_at'] = now();
+        // Set published_at based on status
+        if ($validated['status'] === 'published') {
+            $validated['published_at'] = $validated['published_at'] ?? now();
         }
 
-        // Create post (không cần category_id nữa)
+        // Create post
         $postData = collect($validated)->except(['categories', 'primary_category', 'tags'])->toArray();
         $post = Post::create($postData);
 
@@ -288,9 +288,13 @@ class PostController extends Controller
             $validated['featured_image'] = $path;
         }
 
-        // Update published_at
-        if ($validated['status'] === 'published' && empty($post->published_at)) {
-            $validated['published_at'] = now();
+        // Update published_at based on status
+        if ($validated['status'] === 'published') {
+            $validated['published_at'] = $validated['published_at'] ?? ($post->published_at ?? now());
+        } elseif ($validated['status'] === 'draft') {
+            // Keep existing published_at if any, or nullify? 
+            // Usually we keep it for reference but many systems null it. 
+            // Let's keep it to allow "unpublishing" then "republishing" easily.
         }
 
         // Update post

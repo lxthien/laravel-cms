@@ -27,6 +27,7 @@ class Page extends Model
         'parent_id',
         'user_id',
         'gallery',
+        'published_at',
     ];
 
     protected $casts = [
@@ -34,6 +35,7 @@ class Page extends Model
         'is_homepage' => 'boolean',
         'order' => 'integer',
         'gallery' => 'array',
+        'published_at' => 'datetime',
     ];
 
     // Relationships
@@ -55,7 +57,14 @@ class Page extends Model
     // Scopes
     public function scopePublished($query)
     {
-        return $query->where('status', 'published');
+        return $query->where('status', 'published')
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now());
+    }
+
+    public function scopeDraft($query)
+    {
+        return $query->where('status', 'draft');
     }
 
     public function scopeInMenu($query)
@@ -75,6 +84,14 @@ class Page extends Model
             return $this->parent->full_path . '/' . $this->slug;
         }
         return $this->slug;
+    }
+
+    // Helper methods
+    public function isPublished(): bool
+    {
+        return $this->status === 'published' &&
+            $this->published_at &&
+            $this->published_at <= now();
     }
 
     // Auto generate slug

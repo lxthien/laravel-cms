@@ -17,8 +17,8 @@ class PageController extends Controller
     public function show($slug)
     {
         // Find the page by slug and ensure it's published
-        $page = Page::where('slug', $slug)
-            ->where('status', 'published')
+        $page = Page::published()
+            ->where('slug', $slug)
             ->firstOrFail();
 
         // Build breadcrumbs

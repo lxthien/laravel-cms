@@ -87,7 +87,7 @@
                                         @foreach($post->categories as $category)
                                             <a href="{{ route('admin.posts.by-category', $category) }}"
                                                 class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium transition
-                                                                            {{ $category->pivot->is_primary ? 'bg-blue-100 text-blue-800 hover:bg-blue-200' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
+                                                                                            {{ $category->pivot->is_primary ? 'bg-blue-100 text-blue-800 hover:bg-blue-200' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
                                                 {{ $category->name }}
                                                 @if($category->pivot->is_primary)
                                                     <svg class="ml-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
@@ -106,15 +106,16 @@
                             <td class="px-6 py-4">{{ $post->user->name }}</td>
                             <td class="px-6 py-4">
                                 <span class="px-2 py-1 text-xs rounded 
-                                            @if($post->status === 'published') bg-green-100 text-green-800
-                                            @elseif($post->status === 'pending') bg-yellow-100 text-yellow-800
-                                            @else bg-gray-100 text-gray-800
-                                            @endif">
-                                    {{ ucfirst($post->status) }}
+                                                    @if($post->status === 'published' && $post->published_at > now()) bg-blue-100 text-blue-800
+                                                    @elseif($post->status === 'published') bg-green-100 text-green-800
+                                                    @elseif($post->status === 'pending') bg-yellow-100 text-yellow-800
+                                                    @else bg-gray-100 text-gray-800
+                                                    @endif">
+                                    {{ $post->status === 'published' && $post->published_at > now() ? 'Scheduled' : ucfirst($post->status) }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                {{ $post->published_at ? $post->published_at->format('d/m/Y') : '-' }}
+                                {{ $post->published_at ? $post->published_at->format('d/m/Y H:i') : '-' }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
                                 <div class="flex gap-2">

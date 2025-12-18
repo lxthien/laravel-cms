@@ -55,6 +55,7 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Template</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Thứ tự</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ngày đăng</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hành động</th>
                     </tr>
                 </thead>
@@ -90,12 +91,17 @@
 
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="px-2 py-1 text-xs rounded 
-                                                                            @if($page->status === 'published') bg-green-100 text-green-800
-                                                                            @elseif($page->status === 'draft') bg-yellow-100 text-yellow-800
-                                                                            @else bg-gray-100 text-gray-800
-                                                                            @endif">
-                                    {{ ucfirst($page->status) }}
+                                            @if($page->status === 'published' && $page->published_at > now()) bg-blue-100 text-blue-800
+                                            @elseif($page->status === 'published') bg-green-100 text-green-800
+                                            @elseif($page->status === 'draft') bg-yellow-100 text-yellow-800
+                                            @else bg-gray-100 text-gray-800
+                                            @endif">
+                                    {{ $page->status === 'published' && $page->published_at > now() ? 'Scheduled' : ucfirst($page->status) }}
                                 </span>
+                            </td>
+
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                {{ $page->published_at ? $page->published_at->format('d/m/Y H:i') : '-' }}
                             </td>
 
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">

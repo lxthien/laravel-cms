@@ -186,41 +186,51 @@
                         <p class="text-xs text-gray-500 mt-2">Có thể chọn nhiều hình ảnh cùng lúc.</p>
                     </div>
 
-                    <!-- Status -->
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="status">
-                            Trạng Thái <span class="text-red-500">*</span>
-                        </label>
-                        <select name="status" id="status" required
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
-                            <option value="draft" {{ old('status', $post->status) == 'draft' ? 'selected' : '' }}>Draft
-                            </option>
-                            <option value="published" {{ old('status', $post->status) == 'published' ? 'selected' : '' }}>
-                                Published</option>
-                            <option value="pending" {{ old('status', $post->status) == 'pending' ? 'selected' : '' }}>Pending
-                            </option>
-                        </select>
-                    </div>
+                    <!-- Publishing Card -->
+                    <div class="bg-gray-50 rounded-lg p-4 border mb-4">
+                        <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-4 pb-2 border-b">
+                            Publishing
+                        </h3>
+                        
+                        <!-- Status -->
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-xs font-bold mb-1" for="status">
+                                Trạng Thái <span class="text-red-500">*</span>
+                            </label>
+                            <select name="status" id="status" required
+                                class="w-full border rounded py-2 px-3 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 @error('status') border-red-500 @enderror">
+                                <option value="draft" {{ old('status', $post->status) == 'draft' ? 'selected' : '' }}>Draft</option>
+                                <option value="published" {{ old('status', $post->status) == 'published' ? 'selected' : '' }}>Published</option>
+                            </select>
+                            @error('status')
+                                <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
 
-                    <!-- Published At -->
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="published_at">
-                            Ngày Đăng
-                        </label>
-                        <input type="datetime-local" name="published_at" id="published_at" value="{{ old('published_at') }}"
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
-                    </div>
+                        <!-- Published At -->
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-xs font-bold mb-1" for="published_at">
+                                Ngày Đăng (Để trống = Giữ nguyên/Ngay bây giờ)
+                            </label>
+                            <input type="datetime-local" name="published_at" id="published_at" 
+                                value="{{ old('published_at', $post->published_at ? $post->published_at->format('Y-m-d\TH:i') : '') }}"
+                                class="w-full border rounded py-2 px-3 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 @error('published_at') border-red-500 @enderror">
+                            @error('published_at')
+                                <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
 
-                    <!-- Buttons -->
-                    <div class="flex flex-col gap-2 mt-6">
-                        <button type="submit"
-                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full">
-                            Đăng Bài
-                        </button>
-                        <a href="{{ route('admin.posts.index') }}"
-                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-center w-full">
-                            Hủy
-                        </a>
+                        <!-- Action Buttons -->
+                        <div class="flex flex-col gap-2 pt-2">
+                            <button type="submit"
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm transition-colors">
+                                <i class="fas fa-save mr-1"></i> Lưu Thay Đổi
+                            </button>
+                            <a href="{{ route('admin.posts.index') }}"
+                                class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-bold py-2 px-4 rounded text-sm text-center transition-colors">
+                                Hủy
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

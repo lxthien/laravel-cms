@@ -103,28 +103,42 @@
                 {{-- Sidebar Column --}}
                 <div class="col-span-1 space-y-6">
 
-                    {{-- Publish Box --}}
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <h3 class="text-lg font-bold mb-4">Xuất bản</h3>
-
+                    {{-- Publishing Card --}}
+                    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
+                        <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-4 pb-2 border-b">
+                            Xuất bản
+                        </h3>
+                        
                         {{-- Status --}}
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
-                            <select name="status" class="w-full border border-gray-300 rounded px-4 py-2">
+                            <label class="block text-gray-700 text-xs font-bold mb-1">
+                                Trạng thái <span class="text-red-500">*</span>
+                            </label>
+                            <select name="status" id="status" required
+                                class="w-full border border-gray-300 rounded px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                 <option value="draft" {{ old('status') == 'draft' ? 'selected' : '' }}>Draft</option>
-                                <option value="published" {{ old('status') == 'published' ? 'selected' : '' }}>Published
+                                <option value="published" {{ old('status', 'published') == 'published' ? 'selected' : '' }}>Published
                                 </option>
                             </select>
                         </div>
 
+                        {{-- Published At --}}
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-xs font-bold mb-1">
+                                Ngày đăng (Để trống = Ngay bây giờ)
+                            </label>
+                            <input type="datetime-local" name="published_at" id="published_at" value="{{ old('published_at') }}"
+                                class="w-full border border-gray-300 rounded px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+
                         {{-- Actions --}}
-                        <div class="flex gap-2">
+                        <div class="flex flex-col gap-2 pt-2">
                             <button type="submit"
-                                class="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-medium">
-                                Tạo Trang
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm transition-colors">
+                                <i class="fas fa-paper-plane mr-1"></i> Tạo Trang
                             </button>
                             <a href="{{ route('admin.pages.index') }}"
-                                class="flex-1 text-center bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded font-medium">
+                                class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-bold py-2 px-4 rounded text-sm text-center transition-colors">
                                 Hủy
                             </a>
                         </div>
