@@ -73,6 +73,70 @@
                 </div>
             </div>
         </div>
+
+        {{-- Comments Card --}}
+        <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-red-100 text-red-500">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
+                        </path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="mb-2 text-sm font-medium text-gray-600">Bình Luận</p>
+                    <p class="text-2xl font-semibold text-gray-700">
+                        {{ number_format($stats['comments']) }}
+                        @if($stats['pending_comments'] > 0)
+                            <span class="text-xs font-normal text-red-500">(+{{ $stats['pending_comments'] }} chờ duyệt)</span>
+                        @endif
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Analytics Grid --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {{-- Post Growth Chart --}}
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Tăng Trưởng Bài Viết (6 Tháng)</h3>
+            <div class="h-64">
+                <canvas id="postGrowthChart"></canvas>
+            </div>
+        </div>
+
+        {{-- Top Viewed Posts --}}
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Bài Viết Xem Nhiều Nhất</h3>
+            <div class="space-y-4">
+                @foreach($topPosts as $post)
+                    <div class="flex items-center justify-between border-b pb-2 last:border-0 last:pb-0">
+                        <div class="flex-1">
+                            <a href="{{ route('admin.posts.edit', $post) }}"
+                                class="text-sm font-medium text-gray-900 hover:text-blue-600 transition-colors line-clamp-1">
+                                {{ $post->title }}
+                            </a>
+                            <p class="text-xs text-gray-500">
+                                {{ $post->published_at ? $post->published_at->format('d/m/Y') : 'Chưa xuất bản' }}</p>
+                        </div>
+                        <div class="text-right ml-4">
+                            <span
+                                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                {{ number_format($post->view_count) }}
+                            </span>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
     </div>
 
     {{-- Recent Posts --}}
@@ -121,10 +185,10 @@
                             <td class="px-6 py-4 text-sm text-gray-600">{{ $post->user->name }}</td>
                             <td class="px-6 py-4">
                                 <span class="px-2 py-1 text-xs rounded 
-                                            @if($post->status === 'published') bg-green-100 text-green-800
-                                            @elseif($post->status === 'pending') bg-yellow-100 text-yellow-800
-                                            @else bg-gray-100 text-gray-800
-                                            @endif">
+                                                    @if($post->status === 'published') bg-green-100 text-green-800
+                                                    @elseif($post->status === 'pending') bg-yellow-100 text-yellow-800
+                                                    @else bg-gray-100 text-gray-800
+                                                    @endif">
                                     {{ ucfirst($post->status) }}
                                 </span>
                             </td>
@@ -144,3 +208,63 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('postGrowthChart').getContext('2d');
+        const chartData = @json($chartData);
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    label: 'Số bài viết',
+                    data: chartData.data,
+                    fill: true,
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderColor: 'rgb(59, 130, 246)',
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: 'rgb(59, 130, 246)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            precision: 0
+                        },
+                        grid: {
+                            display: true,
+                            drawBorder: false,
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+@endpush
