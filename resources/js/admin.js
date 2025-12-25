@@ -17,6 +17,12 @@ $(document).ready(function () {
 
     // ===== LISTING HANDLERS (Pages, Categories, etc.) =====
     initListingHandlers();
+
+    // ===== DASHBOARD HANDLERS =====
+    initDashboardChart();
+
+    // ===== MENU BUILDER HANDLERS =====
+    initMenuBuilder();
 });
 
 /**
@@ -342,12 +348,6 @@ function clearTagError() {
     $('#tag-error-message').remove();
 }
 
-// Export functions to global scope for inline scripts if needed
-window.showTagError = showTagError;
-window.clearTagError = clearTagError;
-window.updatePrimaryCategoryRadios = updatePrimaryCategoryRadios;
-window.showToast = showToast; // Export showToast
-
 /**
  * Toast notification function
  * @param {string} message 
@@ -387,3 +387,327 @@ function showToast(message, type = 'success') {
         }, 300);
     }, 3000);
 }
+
+/**
+ * ===== DASHBOARD CHART HANDLER =====
+ * Initialize Dashboard Post Growth Chart
+ * Chart data should be in data-chart-data attribute of #postGrowthChart canvas
+ */
+function initDashboardChart() {
+    var $canvas = $('#postGrowthChart');
+
+    // Only initialize if canvas exists and Chart.js is loaded
+    if ($canvas.length === 0 || typeof Chart === 'undefined') {
+        return;
+    }
+
+    var chartDataAttr = $canvas.attr('data-chart-data');
+    if (!chartDataAttr) {
+        return;
+    }
+
+    try {
+        var chartData = JSON.parse(chartDataAttr);
+        var ctx = $canvas[0].getContext('2d');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    label: 'Số bài viết',
+                    data: chartData.data,
+                    fill: true,
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderColor: 'rgb(59, 130, 246)',
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: 'rgb(59, 130, 246)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            precision: 0
+                        },
+                        grid: {
+                            display: true,
+                            drawBorder: false,
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    } catch (e) {
+        console.error('Dashboard chart initialization error:', e);
+    }
+}
+
+/**
+ * ===== MENU BUILDER HANDLERS =====
+ * Initialize Menu Builder (Nestable2 drag/drop)
+ * Required: data-menu-id, data-update-url, data-structure-url on #menu-builder-container
+ */
+function initMenuBuilder() {
+    var $container = $('#menu-builder-container');
+    var $nestable = $('#nestable-menu');
+
+    if ($nestable.length === 0 || typeof $.fn.nestable === 'undefined') {
+        return;
+    }
+
+    var menuId = $container.data('menu-id');
+    var updateUrl = $container.data('update-url');
+    var structureUrl = $container.data('structure-url');
+    var csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+    // Initialize Nestable (only if not already initialized)
+    if (!$nestable.data('nestable-id')) {
+        $nestable.nestable({
+            maxDepth: 3,
+            callback: function (l, e) {
+                // Callback when item moved (optional)
+            }
+        });
+    }
+
+    // Unbind existing events before binding new ones (prevent duplicates)
+    $(document).off('click.menuBuilder');
+    $(document).off('input.menuBuilder change.menuBuilder');
+
+    // Accordion Toggle Logic
+    $(document).on('click.menuBuilder', '.accordion-toggle', function () {
+        var target = $(this).data('target');
+        $(this).toggleClass('active');
+        $(target).slideToggle(200);
+    });
+
+    // Add to Menu (from Checkboxes)
+    $(document).on('click.menuBuilder', '.add-to-menu', function () {
+        var panel = $(this).closest('div');
+        var checked = panel.find('.item-checkbox:checked');
+
+        checked.each(function () {
+            var data = $(this).data();
+            addMenuItemToStructure({
+                title: data.title,
+                url: null,
+                model_type: data.type,
+                model_id: data.id,
+                target: '_self',
+                icon: null,
+                css_class: null
+            });
+            $(this).prop('checked', false);
+        });
+
+        $('#empty-state').addClass('hidden');
+    });
+
+    // Add Custom Link
+    $(document).on('click.menuBuilder', '.add-custom-link', function () {
+        var title = $('#custom-title').val();
+        var url = $('#custom-url').val();
+
+        if (!title) {
+            alert('Vui lòng nhập tên hiển thị');
+            return;
+        }
+
+        addMenuItemToStructure({
+            title: title,
+            url: url,
+            model_type: null,
+            model_id: null,
+            target: '_self',
+            icon: null,
+            css_class: null
+        });
+
+        $('#custom-title').val('');
+        $('#custom-url').val('http://');
+        $('#empty-state').addClass('hidden');
+    });
+
+    // Toggle Settings Panel
+    $(document).on('click.menuBuilder', '.item-edit-toggle', function () {
+        var item = $(this).closest('.dd-item');
+        item.find('.item-settings').first().slideToggle(200);
+        $(this).toggleClass('rotate-180');
+    });
+
+    // Remove Item
+    $(document).on('click.menuBuilder', '.item-remove', function () {
+        if (confirm('Bạn có chắc muốn xóa mục menu này? All children will also be deleted.')) {
+            $(this).closest('.dd-item').remove();
+            if ($('#nestable-menu .dd-item').length === 0) {
+                $('#empty-state').removeClass('hidden');
+            }
+        }
+    });
+
+    // Sync input values to data attributes
+    $(document).on('input.menuBuilder change.menuBuilder', '.item-settings input, .item-settings select', function () {
+        var settings = $(this).closest('.item-settings');
+        var item = settings.closest('.dd-item');
+        var classList = $(this).attr('class') || '';
+        var match = classList.match(/edit-(\w+)/);
+        if (!match) return;
+
+        var fieldName = match[1];
+        var newVal = $(this).val();
+
+        item.attr('data-' + fieldName, newVal);
+
+        // If title changed, update the display text too
+        if (fieldName === 'title') {
+            item.find('.dd-handle .text-sm').first().text(newVal);
+        }
+    });
+
+    // Save Menu
+    $(document).on('click.menuBuilder', '#save-menu', function () {
+        var btn = $(this);
+        var originalHtml = btn.html();
+
+        btn.prop('disabled', true).html('<svg class="animate-spin w-4 h-4" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Đang lưu...');
+
+        // 1. First save the main menu metadata (Name, Location)
+        $.ajax({
+            url: updateUrl,
+            method: 'PUT',
+            data: {
+                name: $('#menu-name').val(),
+                location: $('#menu-location').val(),
+                _token: csrfToken
+            },
+            success: function () {
+                // 2. Then save structure
+                var structure = $nestable.nestable('serialize');
+
+                $.ajax({
+                    url: structureUrl,
+                    method: 'POST',
+                    data: {
+                        items: structure,
+                        _token: csrfToken
+                    },
+                    success: function (response) {
+                        showToast(response.message, 'success');
+                        setTimeout(function () { location.reload(); }, 1000);
+                    },
+                    error: function (xhr) {
+                        showToast('Lỗi khi lưu cấu trúc: ' + (xhr.responseJSON?.message || 'Unknown'), 'error');
+                        btn.prop('disabled', false).html(originalHtml);
+                    }
+                });
+            },
+            error: function (xhr) {
+                showToast('Lỗi khi lưu thông tin menu: ' + (xhr.responseJSON?.message || 'Unknown'), 'error');
+                btn.prop('disabled', false).html(originalHtml);
+            }
+        });
+    });
+}
+
+/**
+ * Add a new menu item to the structure
+ */
+function addMenuItemToStructure(data) {
+    var id = 'new-' + Date.now() + Math.floor(Math.random() * 100);
+    var modelTypeLabel = data.model_type ? data.model_type.split('\\').pop() : 'Custom';
+    var hasUrl = !data.model_type;
+
+    var urlFieldHtml = hasUrl ?
+        '<div class="space-y-1">' +
+        '<label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">URL</label>' +
+        '<input type="text" class="w-full text-sm border-gray-200 rounded edit-url" value="' + (data.url || '') + '">' +
+        '</div>' : '';
+
+    var itemHtml =
+        '<li class="dd-item" ' +
+        'data-id="' + id + '" ' +
+        'data-title="' + data.title + '" ' +
+        'data-url="' + (data.url || '') + '" ' +
+        'data-target="' + data.target + '" ' +
+        'data-icon="' + (data.icon || '') + '" ' +
+        'data-css_class="' + (data.css_class || '') + '" ' +
+        'data-model_type="' + (data.model_type || '') + '" ' +
+        'data-model_id="' + (data.model_id || '') + '">' +
+        '<div class="flex items-center bg-white border border-gray-200 rounded-md shadow-sm mb-2 overflow-hidden group hover:border-blue-300 transition-colors">' +
+        '<div class="dd-handle h-12 flex-1 flex items-center px-4 cursor-move bg-white">' +
+        '<span class="text-gray-400 mr-3 opacity-0 group-hover:opacity-100 transition-opacity">' +
+        '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"/></svg>' +
+        '</span>' +
+        '<span class="text-sm font-semibold text-gray-700 truncate">' + data.title + '</span>' +
+        '</div>' +
+        '<div class="flex items-center px-4 py-2 bg-gray-50 border-l border-gray-100 h-12">' +
+        '<span class="text-[10px] uppercase font-bold text-gray-400 mr-4">' + modelTypeLabel + '</span>' +
+        '<button type="button" class="text-gray-400 hover:text-blue-600 item-edit-toggle transition-colors p-1">' +
+        '<svg class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>' +
+        '</button>' +
+        '</div>' +
+        '</div>' +
+        '<div class="item-settings hidden bg-gray-50 border border-gray-100 rounded-md mb-2 p-5 space-y-4 shadow-inner">' +
+        '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">' +
+        '<div class="space-y-1">' +
+        '<label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tên hiển thị</label>' +
+        '<input type="text" class="w-full text-sm border-gray-200 rounded edit-title" value="' + data.title + '">' +
+        '</div>' +
+        '<div class="space-y-1">' +
+        '<label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Icon (Font Awesome)</label>' +
+        '<input type="text" class="w-full text-sm border-gray-200 rounded edit-icon" value="' + (data.icon || '') + '" placeholder="fas fa-home">' +
+        '</div>' +
+        '</div>' +
+        urlFieldHtml +
+        '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">' +
+        '<div class="space-y-1">' +
+        '<label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">CSS Classes</label>' +
+        '<input type="text" class="w-full text-sm border-gray-200 rounded edit-css_class" value="' + (data.css_class || '') + '" placeholder="custom-class mb-2">' +
+        '</div>' +
+        '<div class="space-y-1">' +
+        '<label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Mở trong tab mới?</label>' +
+        '<select class="w-full text-sm border-gray-200 rounded edit-target">' +
+        '<option value="_self"' + (data.target === '_self' ? ' selected' : '') + '>Không (Hiện tại)</option>' +
+        '<option value="_blank"' + (data.target === '_blank' ? ' selected' : '') + '>Có (Tab mới)</option>' +
+        '</select>' +
+        '</div>' +
+        '</div>' +
+        '<div class="flex justify-between items-center pt-2 border-t border-gray-200">' +
+        '<button type="button" class="text-red-500 text-xs font-bold uppercase tracking-widest hover:text-red-700 transition-colors item-remove">Xóa mục này</button>' +
+        '<span class="text-[10px] text-gray-400">Mới</span>' +
+        '</div>' +
+        '</div>' +
+        '</li>';
+
+    $('#nestable-menu > .dd-list').append(itemHtml);
+}
+
+window.showTagError = showTagError;
+window.clearTagError = clearTagError;
+window.updatePrimaryCategoryRadios = updatePrimaryCategoryRadios;
+window.showToast = showToast;
+window.initDashboardChart = initDashboardChart;
+window.initMenuBuilder = initMenuBuilder;
+window.addMenuItemToStructure = addMenuItemToStructure;

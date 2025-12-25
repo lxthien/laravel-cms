@@ -5,7 +5,7 @@
 @section('page-title', 'Menu Builder')
 
 @section('content')
-    <div class="flex flex-col lg:flex-row gap-8">
+    <div id="menu-builder-container" class="flex flex-col lg:flex-row gap-8">
         {{-- Sidebar: Add Items --}}
         <div class="w-full lg:w-1/3 space-y-4">
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -203,297 +203,24 @@
     </div>
 
     @push('scripts')
+        {{-- jQuery must be loaded before nestable2 --}}
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nestable2/1.6.0/jquery.nestable.min.css">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/nestable2/1.6.0/jquery.nestable.min.js"></script>
 
-        <style>
-            /* Nestable2 Core Layout Fix */
-            .dd {
-                position: relative;
-                display: block;
-                margin: 0;
-                padding: 0;
-                list-style: none;
-            }
-
-            .dd-list {
-                display: block;
-                position: relative;
-                margin: 0;
-                padding: 0;
-                list-style: none;
-            }
-
-            .dd-list .dd-list {
-                padding-left: 30px;
-            }
-
-            .dd-item,
-            .dd-empty,
-            .dd-placeholder {
-                display: block;
-                position: relative;
-                margin: 0;
-                padding: 0;
-                min-height: 20px;
-                line-height: 20px;
-            }
-
-            .dd-handle {
-                display: flex !important;
-                align-items: center !important;
-                height: 48px !important;
-                margin: 5px 0 !important;
-                padding: 5px 15px !important;
-                cursor: move;
-                background: #fff !important;
-                border: 1px solid #e2e8f0 !important;
-                border-radius: 8px !important;
-                box-sizing: border-box !important;
-            }
-
-            .dd-item>button {
-                display: none;
-            }
-
-            .dd-placeholder {
-                margin: 5px 0;
-                padding: 0;
-                min-height: 48px;
-                background: #f8fafc;
-                border: 1px dashed #cbd5e1;
-                border-radius: 8px;
-            }
-
-            /* Builder UI Refinements */
-            .dd-handle:hover {
-                border-color: #3b82f6 !important;
-            }
-
-            .dd-list .dd-list {
-                padding-left: 40px;
-                margin-top: 5px;
-            }
-
-            .accordion-toggle.active svg {
-                transform: rotate(180deg);
-            }
-
-            .item-checkbox {
-                width: 1.125rem;
-                height: 1.125rem;
-            }
-        </style>
-
+        {{-- Menu Builder Configuration via data attributes --}}
         <script>
-            jQuery(document).ready(function ($) {
-                // Initialize Nestable
-                $('#nestable-menu').nestable({
-                    maxDepth: 3,
-                    callback: function (l, e) {
-                        // Update order/structure if needed when dragging
-                    }
+            // Set menu builder configuration on container
+            jQuery(function ($) {
+                $('#menu-builder-container').attr({
+                    'data-menu-id': '{{ $menu->id }}',
+                    'data-update-url': '{{ route('admin.menus.update', $menu) }}',
+                    'data-structure-url': '{{ route('admin.menus.update-structure', $menu) }}'
                 });
-
-                // Accordion Logic
-                $('.accordion-toggle').click(function () {
-                    const target = $(this).data('target');
-                    $(this).toggleClass('active');
-                    $(target).slideToggle(200);
-                });
-
-                // Add to Menu (from Checkboxes)
-                $('.add-to-menu').click(function () {
-                    const panel = $(this).closest('div');
-                    const checked = panel.find('.item-checkbox:checked');
-
-                    checked.each(function () {
-                        const data = $(this).data();
-                        addMenuItemToStructure({
-                            title: data.title,
-                            url: null,
-                            model_type: data.type,
-                            model_id: data.id,
-                            target: '_self',
-                            icon: null,
-                            css_class: null
-                        });
-                        $(this).prop('checked', false);
-                    });
-
-                    $('#empty-state').addClass('hidden');
-                });
-
-                // Add Custom Link
-                $('.add-custom-link').click(function () {
-                    const title = $('#custom-title').val();
-                    const url = $('#custom-url').val();
-
-                    if (!title) return alert('Vui lòng nhập tên hiển thị');
-
-                    addMenuItemToStructure({
-                        title: title,
-                        url: url,
-                        model_type: null,
-                        model_id: null,
-                        target: '_self',
-                        icon: null,
-                        css_class: null
-                    });
-
-                    $('#custom-title').val('');
-                    $('#custom-url').val('http://');
-                    $('#empty-state').addClass('hidden');
-                });
-
-                function addMenuItemToStructure(data) {
-                    const id = 'new-' + Date.now() + Math.floor(Math.random() * 100);
-                    const itemHtml = `
-                            <li class="dd-item" 
-                                data-id="${id}" 
-                                data-title="${data.title}"
-                                data-url="${data.url || ''}"
-                                data-target="${data.target}"
-                                data-icon="${data.icon || ''}"
-                                data-css_class="${data.css_class || ''}"
-                                data-model_type="${data.model_type || ''}"
-                                data-model_id="${data.model_id || ''}">
-
-                                <div class="flex items-center bg-white border border-gray-200 rounded-md shadow-sm mb-2 overflow-hidden group hover:border-blue-300 transition-colors">
-                                    <div class="dd-handle h-12 flex-1 flex items-center px-4 cursor-move bg-white">
-                                        <span class="text-gray-400 mr-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"/></svg>
-                                        </span>
-                                        <span class="text-sm font-semibold text-gray-700 truncate">${data.title}</span>
-                                    </div>
-
-                                    <div class="flex items-center px-4 py-2 bg-gray-50 border-l border-gray-100 h-12">
-                                        <span class="text-[10px] uppercase font-bold text-gray-400 mr-4">${data.model_type ? data.model_type.split('\\').pop() : 'Custom'}</span>
-                                        <button type="button" class="text-gray-400 hover:text-blue-600 item-edit-toggle transition-colors p-1">
-                                            <svg class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="item-settings hidden bg-gray-50 border border-gray-100 rounded-md mb-2 p-5 space-y-4 shadow-inner">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div class="space-y-1">
-                                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tên hiển thị</label>
-                                            <input type="text" class="w-full text-sm border-gray-200 rounded edit-title" value="${data.title}">
-                                        </div>
-                                        <div class="space-y-1">
-                                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Icon (Font Awesome)</label>
-                                            <input type="text" class="w-full text-sm border-gray-200 rounded edit-icon" value="${data.icon || ''}" placeholder="fas fa-home">
-                                        </div>
-                                    </div>
-
-                                    ${!data.model_type ? `
-                                    <div class="space-y-1">
-                                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">URL</label>
-                                        <input type="text" class="w-full text-sm border-gray-200 rounded edit-url" value="${data.url || ''}">
-                                    </div>
-                                    ` : ''}
-
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div class="space-y-1">
-                                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">CSS Classes</label>
-                                            <input type="text" class="w-full text-sm border-gray-200 rounded edit-css_class" value="${data.css_class || ''}" placeholder="custom-class mb-2">
-                                        </div>
-                                        <div class="space-y-1">
-                                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Mở trong tab mới?</label>
-                                            <select class="w-full text-sm border-gray-200 rounded edit-target">
-                                                <option value="_self" ${data.target === '_self' ? 'selected' : ''}>Không (Hiện tại)</option>
-                                                <option value="_blank" ${data.target === '_blank' ? 'selected' : ''}>Có (Tab mới)</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="flex justify-between items-center pt-2 border-t border-gray-200">
-                                        <button type="button" class="text-red-500 text-xs font-bold uppercase tracking-widest hover:text-red-700 transition-colors item-remove">Xóa mục này</button>
-                                        <span class="text-[10px] text-gray-400">Mới</span>
-                                    </div>
-                                </div>
-                            </li>
-                        `;
-
-                    $('#nestable-menu > .dd-list').append(itemHtml);
+                // Re-initialize after data attributes are set
+                if (typeof initMenuBuilder === 'function') {
+                    initMenuBuilder();
                 }
-
-                // Toggle Settings
-                $(document).on('click', '.item-edit-toggle', function () {
-                    const item = $(this).closest('.dd-item');
-                    item.find('.item-settings').first().slideToggle(200);
-                    $(this).toggleClass('rotate-180');
-                });
-
-                // Remove Item
-                $(document).on('click', '.item-remove', function () {
-                    if (confirm('Bạn có chắc muốn xóa mục menu này? All children will also be deleted.')) {
-                        $(this).closest('.dd-item').remove();
-                        if ($('#nestable-menu .dd-item').length === 0) {
-                            $('#empty-state').removeClass('hidden');
-                        }
-                    }
-                });
-
-                // Sync input values to data attributes
-                $(document).on('input change', '.item-settings input, .item-settings select', function () {
-                    const settings = $(this).closest('.item-settings');
-                    const item = settings.closest('.dd-item');
-                    const fieldName = $(this).attr('class').split('edit-')[1]; // title, icon, etc.
-                    const newVal = $(this).val();
-
-                    item.attr('data-' + fieldName, newVal);
-
-                    // If title changed, update the display text too
-                    if (fieldName === 'title') {
-                        item.find('.dd-handle .text-sm').first().text(newVal);
-                    }
-                });
-
-                // Save Menu
-                $('#save-menu').click(function () {
-                    const btn = $(this);
-                    const originalHtml = btn.html();
-
-                    btn.prop('disabled', true).html('<svg class="animate-spin w-4 h-4" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Đang lưu...');
-
-                    // 1. First save the main menu metadata (Name, Location)
-                    $.ajax({
-                        url: "{{ route('admin.menus.update', $menu) }}",
-                        method: 'PUT',
-                        data: {
-                            name: $('#menu-name').val(),
-                            location: $('#menu-location').val(),
-                            _token: '{{ csrf_token() }}'
-                        },
-                        success: function () {
-                            // 2. Then save structure
-                            const structure = $('#nestable-menu').nestable('serialize');
-
-                            $.ajax({
-                                url: "{{ route('admin.menus.update-structure', $menu) }}",
-                                method: 'POST',
-                                data: {
-                                    items: structure,
-                                    _token: '{{ csrf_token() }}'
-                                },
-                                success: function (response) {
-                                    showToast(response.message, 'success');
-                                    setTimeout(() => location.reload(), 1000);
-                                },
-                                error: function (xhr) {
-                                    showToast('Lỗi khi lưu cấu trúc: ' + (xhr.responseJSON?.message || 'Unknown'), 'error');
-                                    btn.prop('disabled', false).html(originalHtml);
-                                }
-                            });
-                        },
-                        error: function (xhr) {
-                            showToast('Lỗi khi lưu thông tin menu: ' + (xhr.responseJSON?.message || 'Unknown'), 'error');
-                            btn.prop('disabled', false).html(originalHtml);
-                        }
-                    });
-                });
             });
         </script>
     @endpush

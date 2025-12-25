@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\TagController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\RedirectController;
+use App\Http\Controllers\Admin\ActivityLogController;
 use CKSource\CKFinderBridge\Controller\CKFinderController;
 
 /*
@@ -144,6 +145,19 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     // Hoặc kiểm tra theo permission cụ thể
     Route::middleware(['permission:post-create'])->group(function () {
         Route::get('posts/create', [PostController::class, 'create'])->name('posts.create');
+    });
+
+    // Activity Logs
+    Route::prefix('activity-logs')->name('activity-logs.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('index');
+        Route::get('/statistics/overview', [App\Http\Controllers\Admin\ActivityLogController::class, 'statistics'])->name('statistics');
+        Route::get('/model-history/{modelType}/{modelId}', [App\Http\Controllers\Admin\ActivityLogController::class, 'modelHistory'])->name('model-history');
+        Route::get('/user/{user}/timeline', [App\Http\Controllers\Admin\ActivityLogController::class, 'userTimeline'])->name('user-timeline');
+        Route::get('/export', [App\Http\Controllers\Admin\ActivityLogController::class, 'export'])->name('export');
+        // Show single log - constrain to numeric id so static routes (like /export) are not captured
+        Route::get('/{activityLog}', [App\Http\Controllers\Admin\ActivityLogController::class, 'show'])
+            ->whereNumber('activityLog')
+            ->name('show');
     });
 });
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
 
 class SettingController extends Controller
@@ -46,10 +47,12 @@ class SettingController extends Controller
      */
     public function update(Request $request, $group)
     {
+        $activityLogService = app(ActivityLogService::class);
         $settings = Setting::where('group', $group)->get();
 
         foreach ($settings as $setting) {
             $key = $setting->key;
+            $oldValue = $setting->value;
 
             if ($setting->type == 'image' && $request->hasFile($key)) {
                 $path = $request->file($key)->store('settings', 'public');
@@ -60,21 +63,42 @@ class SettingController extends Controller
                 }
                 $setting->value = $path;
                 $setting->save();
+                
+                // Log thay đổi cài đặt
+                $activityLogService->logSettingChange(
+                    "{$group}.{$key}",
+                    '[Ảnh cũ]',
+                    '[Ảnh mới: ' . $path . ']'
+                );
                 continue;
             }
 
             // Special handling for boolean fields: unchecked checkboxes are not sent in request
             if ($setting->type == 'boolean') {
                 $value = $request->boolean($key) ? 1 : 0;
-                $setting->value = $value;
-                $setting->save();
+                if ($setting->value != $value) {
+                    $setting->value = $value;
+                    $setting->save();
+                    $activityLogService->logSettingChange(
+                        "{$group}.{$key}",
+                        $oldValue,
+                        $value
+                    );
+                }
                 continue;
             }
 
             if ($request->has($key)) {
                 $value = $request->input($key);
-                $setting->value = $value;
-                $setting->save();
+                if ($setting->value != $value) {
+                    $setting->value = $value;
+                    $setting->save();
+                    $activityLogService->logSettingChange(
+                        "{$group}.{$key}",
+                        $oldValue,
+                        $value
+                    );
+                }
             }
         }
 

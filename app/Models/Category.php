@@ -10,9 +10,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Traits\LogsActivity;
 
 class Category extends Model
 {
+    use HasFactory, Sluggable, LogsActivity;
     use HasFactory, Sluggable;
 
     protected $fillable = [

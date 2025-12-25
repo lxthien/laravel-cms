@@ -21,6 +21,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Only run view composer for HTTP requests, not console commands
+        if ($this->app->runningInConsole()) {
+            return;
+        }
+
         view()->composer('*', function ($view) {
             $headerMenu = Menu::with('rootItems.children.children')->where('location', 'header')->first();
             $footerMenu = Menu::with('rootItems.children.children')->where('location', 'footer')->first();

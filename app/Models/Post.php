@@ -10,10 +10,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Cviebrock\EloquentSluggable\Sluggable;
+use App\Traits\LogsActivity;
 
 class Post extends Model
 {
-    use HasFactory, Sluggable;
+    use HasFactory, Sluggable, LogsActivity;
 
     protected $fillable = [
         'user_id',

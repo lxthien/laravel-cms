@@ -103,7 +103,7 @@
         <div class="bg-white rounded-lg shadow p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4">Tăng Trưởng Bài Viết (6 Tháng)</h3>
             <div class="h-64">
-                <canvas id="postGrowthChart"></canvas>
+                <canvas id="postGrowthChart" data-chart-data="{{ json_encode($chartData) }}"></canvas>
             </div>
         </div>
 
@@ -119,7 +119,8 @@
                                 {{ $post->title }}
                             </a>
                             <p class="text-xs text-gray-500">
-                                {{ $post->published_at ? $post->published_at->format('d/m/Y') : 'Chưa xuất bản' }}</p>
+                                {{ $post->published_at ? $post->published_at->format('d/m/Y') : 'Chưa xuất bản' }}
+                            </p>
                         </div>
                         <div class="text-right ml-4">
                             <span
@@ -185,10 +186,10 @@
                             <td class="px-6 py-4 text-sm text-gray-600">{{ $post->user->name }}</td>
                             <td class="px-6 py-4">
                                 <span class="px-2 py-1 text-xs rounded 
-                                                    @if($post->status === 'published') bg-green-100 text-green-800
-                                                    @elseif($post->status === 'pending') bg-yellow-100 text-yellow-800
-                                                    @else bg-gray-100 text-gray-800
-                                                    @endif">
+                                                                    @if($post->status === 'published') bg-green-100 text-green-800
+                                                                    @elseif($post->status === 'pending') bg-yellow-100 text-yellow-800
+                                                                    @else bg-gray-100 text-gray-800
+                                                                    @endif">
                                     {{ ucfirst($post->status) }}
                                 </span>
                             </td>
@@ -210,61 +211,5 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const ctx = document.getElementById('postGrowthChart').getContext('2d');
-        const chartData = @json($chartData);
-        
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: chartData.labels,
-                datasets: [{
-                    label: 'Số bài viết',
-                    data: chartData.data,
-                    fill: true,
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    borderColor: 'rgb(59, 130, 246)',
-                    tension: 0.4,
-                    pointRadius: 4,
-                    pointBackgroundColor: 'rgb(59, 130, 246)',
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1,
-                            precision: 0
-                        },
-                        grid: {
-                            display: true,
-                            drawBorder: false,
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
-            }
-        });
-    });
-</script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 @endpush
