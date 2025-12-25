@@ -84,6 +84,27 @@
                             <input type="text" name="meta_keywords" id="meta_keywords" value="{{ old('meta_keywords') }}"
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
                         </div>
+
+                        <!-- SEO Score Checker -->
+                        <div id="seo-score-container" class="mt-4 border rounded-lg overflow-hidden">
+                            <div id="seo-score-header">
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider">SEO Score Checker
+                                    </h3>
+                                    <span id="seo-header-score" class="text-xs font-bold text-gray-500">Checking...</span>
+                                </div>
+                                <svg class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                            <div id="seo-score-body" class="p-4 bg-white hidden">
+                                <div id="seo-content" class="space-y-3">
+                                    <!-- Content will be injected by JS -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
@@ -309,16 +330,16 @@
                 const col = document.createElement('div');
                 col.className = 'relative group';
                 col.innerHTML = `
-                        <div class="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 h-24">
-                            <img src="${img.url}" class="h-full w-full object-cover object-center">
-                        </div>
-                        <button type="button" onclick="removeFromGallery(${index})" 
-                            class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    `;
+                            <div class="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 h-24">
+                                <img src="${img.url}" class="h-full w-full object-cover object-center">
+                            </div>
+                            <button type="button" onclick="removeFromGallery(${index})" 
+                                class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        `;
                 preview.appendChild(col);
 
                 // Render hidden input

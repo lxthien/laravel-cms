@@ -707,18 +707,7 @@ function addMenuItemToStructure(data) {
     $('#nestable-menu > .dd-list').append(itemHtml);
 }
 
-window.showTagError = showTagError;
-window.clearTagError = clearTagError;
-window.updatePrimaryCategoryRadios = updatePrimaryCategoryRadios;
-window.showToast = showToast;
-window.initDashboardChart = initDashboardChart;
-window.initMenuBuilder = initMenuBuilder;
-window.addMenuItemToStructure = addMenuItemToStructure;
-window.initNotifications = initNotifications;
-
-/**
- * ===== NOTIFICATION SYSTEM =====
- */
+// ===== NOTIFICATION SYSTEM =====
 function initNotifications() {
     var $bellBtn = $('#notification-bell');
     var $dropdown = $('#notification-dropdown');
@@ -853,3 +842,373 @@ function initNotifications() {
         });
     });
 }
+
+// ===== SEO SCORE CHECKER =====
+function initSeoScoreChecker() {
+    if ($('#seo-score-container').length === 0) return;
+
+    var checker = new SeoScoreChecker();
+    checker.init();
+}
+
+class SeoScoreChecker {
+    constructor() {
+        this.titleInput = $('#title');
+        this.metaTitleInput = $('#meta_title');
+        this.descInput = $('#excerpt');
+        this.metaDescInput = $('#meta_description');
+        this.keywordInput = $('#meta_keywords');
+        this.slugInput = $('#slug');
+        this.contentEditorId = 'editor';
+
+        // Element cache
+        this.scoreBody = $('#seo-score-body');
+        this.toggleBtn = '#seo-score-header';
+
+        // Initialize UI structure
+        this.buildUI();
+
+        // Tab elements
+        this.tabs = $('.seo-tab-btn');
+        this.tabContents = $('.seo-tab-content');
+
+        // Preview elements
+        this.previewTitle = $('#g-preview-title');
+        this.previewDesc = $('#g-preview-desc');
+        this.previewUrl = $('#g-preview-url');
+        this.previewContainer = $('.google-preview-container');
+    }
+
+    buildUI() {
+        var html = `
+            <div class="seo-score-info">
+                <div class="seo-score-circle" id="seoScoreCircle">0</div>
+                <div class="seo-score-text">
+                    <h4 id="seoScoreLabel">Checking...</h4>
+                    <p id="seoScoreMsg">Improve your content to boost ranking</p>
+                </div>
+            </div>
+
+            <div class="seo-tabs">
+                <button type="button" class="seo-tab-btn active" data-tab="check">SEO Check</button>
+                <button type="button" class="seo-tab-btn" data-tab="preview">Google Preview</button>
+            </div>
+
+            <div id="tab-check" class="seo-tab-content active">
+                <div id="seo-content" class="space-y-3"></div>
+                <div id="seo-tips" class="seo-tips" style="display:none;"></div>
+            </div>
+
+            <div id="tab-preview" class="seo-tab-content">
+                <div class="mb-3 flex justify-end">
+                     <div class="inline-flex rounded-md shadow-sm" role="group">
+                        <button type="button" class="px-3 py-1 text-xs font-medium text-gray-900 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 preview-mode-btn active" data-mode="mobile">
+                          <i class="fas fa-mobile-alt mr-1"></i> Mobile
+                        </button>
+                        <button type="button" class="px-3 py-1 text-xs font-medium text-gray-900 bg-white border border-gray-200 rounded-r-md hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 preview-mode-btn" data-mode="desktop">
+                          <i class="fas fa-desktop mr-1"></i> Desktop
+                        </button>
+                      </div>
+                </div>
+                <div class="google-preview-container google-preview-mobile mx-auto">
+                    <div class="g-link-wrapper">
+                        <cite class="g-cite">
+                            <span class="rounded-full bg-gray-200 w-4 h-4 mr-1"></span>
+                            <span class="g-site-name">{{ config('app.name', 'Site Name') }}</span>
+                        </cite>
+                        <cite class="g-cite text-gray-500" id="g-preview-url">example.com > post</cite>
+                    </div>
+                    <h3 class="g-title" id="g-preview-title">Title will appear here</h3>
+                    <div class="g-desc" id="g-preview-desc">Description will appear here...</div>
+                </div>
+            </div>
+        `;
+        $('#seo-score-body').html(html);
+    }
+
+    init() {
+        var self = this;
+
+        // Toggle visibility
+        $(document).on('click', this.toggleBtn, function () {
+            self.scoreBody.slideToggle(200);
+            $(this).find('svg').toggleClass('rotate-180');
+        });
+
+        // Tab Switching
+        $(document).on('click', '.seo-tab-btn', function () {
+            var tabId = $(this).data('tab');
+            self.tabs.removeClass('active');
+            $(this).addClass('active');
+            self.tabContents.removeClass('active');
+            $('#tab-' + tabId).addClass('active');
+        });
+
+        // Preview Mode Switching
+        $(document).on('click', '.preview-mode-btn', function () {
+            var mode = $(this).data('mode');
+            $('.preview-mode-btn').removeClass('active bg-gray-100').addClass('bg-white');
+            $(this).addClass('active bg-gray-100');
+
+            if (mode === 'mobile') {
+                self.previewContainer.addClass('google-preview-mobile');
+            } else {
+                self.previewContainer.removeClass('google-preview-mobile');
+            }
+        });
+
+        // Bind events
+        var inputs = [this.titleInput, this.metaTitleInput, this.descInput, this.metaDescInput, this.keywordInput, this.slugInput];
+        inputs.forEach(function (input) {
+            if (input.length) {
+                input.on('input propertychange', function () { self.analyze(); });
+            }
+        });
+
+        // CKEditor Hook
+        if (typeof CKEDITOR !== 'undefined') {
+            // Wait for instance to be ready
+            CKEDITOR.on('instanceReady', function (evt) {
+                if (evt.editor.name === self.contentEditorId) {
+                    evt.editor.on('change', function () { self.analyze(); });
+                    evt.editor.on('contentDom', function () {
+                        evt.editor.editable().attachListener(evt.editor.document, 'keyup', function () {
+                            self.analyze();
+                        });
+                    });
+                }
+            });
+
+            // Also check if instance already exists
+            if (CKEDITOR.instances[self.contentEditorId]) {
+                CKEDITOR.instances[self.contentEditorId].on('change', function () { self.analyze(); });
+            }
+        }
+
+        // Initial analysis
+        this.analyze();
+    }
+
+    analyze() {
+        var results = [];
+        var score = 0;
+        var maxScore = 100;
+
+        // Data Retrieval
+        var title = this.metaTitleInput.val() || this.titleInput.val() || '';
+        var desc = this.metaDescInput.val() || this.descInput.val() || '';
+        var slug = this.slugInput.val() || '';
+        var keywordVal = this.keywordInput.val() || '';
+        var keywords = keywordVal.split(',').map(k => k.trim()).filter(k => k);
+        var content = '';
+        if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances[this.contentEditorId]) {
+            content = CKEDITOR.instances[this.contentEditorId].getData();
+        } else if ($('#' + this.contentEditorId).length) {
+            content = $('#' + this.contentEditorId).val();
+        }
+        var plainText = content.replace(/<[^>]*>/g, ' ').toLowerCase();
+
+        // --- 1. Title Analysis (20 pts) ---
+        var titleLen = title.length;
+        if (titleLen >= 40 && titleLen <= 60) {
+            score += 20;
+            results.push({ label: 'Title Length', score: 'good', msg: 'Perfect (' + titleLen + '/60)', current: titleLen, max: 60 });
+        } else if (titleLen === 0) {
+            // score += 0
+            results.push({ label: 'Title Length', score: 'bad', msg: 'Missing title', current: 0, max: 60 });
+        } else {
+            score += 10;
+            results.push({ label: 'Title Length', score: 'ok', msg: titleLen < 40 ? 'Too short' : 'Too long', current: titleLen, max: 60 });
+        }
+
+        // --- 2. Description Analysis (20 pts) ---
+        var descLen = desc.length;
+        if (descLen >= 150 && descLen <= 160) {
+            score += 20;
+            results.push({ label: 'Description', score: 'good', msg: 'Perfect (' + descLen + '/160)', current: descLen, max: 160 });
+        } else if (descLen === 0) {
+            results.push({ label: 'Description', score: 'bad', msg: 'Missing description', current: 0, max: 160 });
+        } else {
+            score += 10;
+            results.push({ label: 'Description', score: 'ok', msg: descLen < 150 ? 'Too short' : 'Too long', current: descLen, max: 160 });
+        }
+
+        // --- 3. Slug Analysis (15 pts) ---
+        if (slug.length > 0) {
+            if (/^[a-z0-9-]+$/.test(slug)) {
+                score += 15;
+                results.push({ label: 'URL Slug', score: 'good', msg: 'Optimized', isBoolean: true });
+            } else {
+                score += 7;
+                results.push({ label: 'URL Slug', score: 'ok', msg: 'Use lowercase & hyphens', isBoolean: true });
+            }
+        } else {
+            results.push({ label: 'URL Slug', score: 'bad', msg: 'Missing', isBoolean: true });
+        }
+
+        // --- 4. Content Length (15 pts) ---
+        var wordCount = plainText.split(/\s+/).filter(w => w.length > 0).length;
+        // Reference file uses 300 words min
+        if (wordCount >= 300) {
+            score += 15;
+            results.push({ label: 'Content Length', score: 'good', msg: wordCount + ' words', current: Math.min(wordCount, 600), max: 600 });
+        } else if (wordCount === 0) {
+            results.push({ label: 'Content Length', score: 'bad', msg: 'Empty content', current: 0, max: 600 });
+        } else {
+            var partial = Math.floor((wordCount / 300) * 15);
+            score += partial;
+            results.push({ label: 'Content Length', score: 'ok', msg: 'Recommended min. 300 words', current: wordCount, max: 600 });
+        }
+
+        // --- 5. Focus Keyword (15 pts) ---
+        var keywordPoints = 0;
+        if (keywords.length > 0) {
+            var primaryKeyword = keywords[0].toLowerCase();
+            var places = [];
+
+            // Check Title
+            if (title.toLowerCase().includes(primaryKeyword)) { keywordPoints += 5; places.push('Title'); }
+            // Check Desc
+            if (desc.toLowerCase().includes(primaryKeyword)) { keywordPoints += 5; places.push('Desc'); }
+            // Check Content
+            if (plainText.includes(primaryKeyword)) { keywordPoints += 5; places.push('Content'); }
+
+            score += keywordPoints;
+
+            if (keywordPoints === 15) {
+                results.push({ label: 'Focus Keyword', score: 'good', msg: 'Found in Title, Desc & Content', isBoolean: true });
+            } else if (keywordPoints > 0) {
+                results.push({ label: 'Focus Keyword', score: 'ok', msg: 'Found in ' + places.join(', '), isBoolean: true });
+            } else {
+                results.push({ label: 'Focus Keyword', score: 'bad', msg: 'Not found in main areas', isBoolean: true });
+            }
+
+            // Density (Informational)
+            var count = (plainText.match(new RegExp(primaryKeyword, 'g')) || []).length;
+            var density = wordCount > 0 ? (count / wordCount) * 100 : 0;
+            var densityMsg = density >= 0.5 && density <= 2.5 ? 'Good (' + density.toFixed(1) + '%)' : 'Check density';
+            results.push({ label: 'Keyword Density', score: density >= 0.5 && density <= 2.5 ? 'good' : 'ok', msg: densityMsg + ' (' + count + ' times)', current: Math.min(density * 20, 100), max: 100 });
+
+        } else {
+            results.push({ label: 'Focus Keyword', score: 'bad', msg: 'Not specified', isBoolean: true });
+        }
+
+        // --- 6. Advanced/Structure (15 pts) ---
+        var structPoints = 0;
+        var tips = [];
+
+        if (content) {
+            // H-tags (5 pts)
+            if (content.match(/<h[23]/)) { structPoints += 5; }
+            else { tips.push('Add H2 or H3 subheadings.'); }
+
+            // Links (5 pts)
+            if (content.includes('<a href')) { structPoints += 5; }
+            else { tips.push('Add internal or external links.'); }
+
+            // Images (5 pts)
+            if (content.match(/<img/)) {
+                var altMissing = (content.match(/<img[^>]+alt=["']\s*["']/g) || []).length;
+                if (altMissing === 0) { structPoints += 5; }
+                else { tips.push('Add Alt text to ' + altMissing + ' images.'); }
+            } else {
+                // If no images, we don't punish but don't give bonus? Or maybe giving points implies images are good.
+                // Updated logic: if no images, no points (encourage images).
+                tips.push('Add images to article.');
+            }
+        }
+        score += structPoints;
+        results.push({ label: 'Structure & Media', score: structPoints >= 10 ? 'good' : 'ok', msg: structPoints + '/15 points', current: structPoints, max: 15 });
+
+        this.render(results, score, tips);
+        this.updatePreview(title, desc, slug);
+    }
+
+    render(results, score, tips) {
+        var html = '';
+
+        // Render Checks
+        results.forEach(function (r) {
+            var colorClass = 'bg-seo-' + r.score;
+            var textClass = 'seo-score-' + r.score;
+            var badgeClass = 'status-' + r.score;
+            var width = r.max ? Math.min((r.current / r.max) * 100, 100) : 100;
+
+            html += '<div class="analysis-card">';
+            html += '<div class="analysis-header">';
+            html += '<span>' + r.label + '</span>';
+            html += '<span class="status-badge ' + badgeClass + '">' + r.msg + '</span>';
+            html += '</div>';
+
+            if (!r.isBoolean) {
+                html += '<div class="seo-progress-bar">';
+                html += '<div class="seo-progress-fill ' + colorClass + '" style="width: ' + width + '%"></div>';
+                html += '</div>';
+            }
+            html += '</div>';
+        });
+
+        $('#seo-content').html(html);
+
+        // Update Score Circle
+        var circle = $('#seoScoreCircle');
+        var label = $('#seoScoreLabel');
+        var msg = $('#seoScoreMsg');
+
+        circle.text(score).removeClass('excellent good moderate poor');
+
+        var scoreClass = 'poor';
+        var scoreLabel = 'Poor';
+        var scoreMessage = 'Needs serious optimization.';
+
+        if (score >= 80) { scoreClass = 'excellent'; scoreLabel = 'Excellent'; scoreMessage = 'Great job! Ready to rank.'; }
+        else if (score >= 60) { scoreClass = 'good'; scoreLabel = 'Good'; scoreMessage = 'Well optimized, minor tweaks possible.'; }
+        else if (score >= 40) { scoreClass = 'moderate'; scoreLabel = 'Moderate'; scoreMessage = 'Needs improvement.'; }
+
+        circle.addClass(scoreClass);
+        label.text(scoreLabel + ' (' + score + '/100)');
+        msg.text(scoreMessage);
+
+        // Update header
+        var headerColor = score >= 80 ? 'text-green-500' : (score >= 60 ? 'text-blue-500' : (score >= 40 ? 'text-yellow-500' : 'text-red-500'));
+        $('#seo-header-score').removeClass('text-red-500 text-green-500 text-yellow-500 text-blue-500').addClass(headerColor).text(scoreLabel);
+
+        // Render Tips
+        if (tips && (tips.length > 0 || score < 100)) {
+            var tipsHtml = '<h5><i class="fas fa-lightbulb text-yellow-500"></i> Optimization Tips</h5><ul>';
+            if (tips) tips.forEach(function (t) { tipsHtml += '<li>' + t + '</li>'; });
+            if (score < 60) tipsHtml += '<li>Check title and description length.</li>';
+            if (score < 40) tipsHtml += '<li>Ensure focus keyword is used.</li>';
+            tipsHtml += '</ul>';
+            $('#seo-tips').html(tipsHtml).show();
+        } else {
+            $('#seo-tips').hide();
+        }
+    }
+
+    updatePreview(title, desc, slug) {
+        var host = window.location.host;
+        this.previewTitle.text(title || 'Post Title');
+        this.previewDesc.text(desc || 'Post description will appear here in search results...');
+        this.previewUrl.text(host + ' > ' + (slug || 'post-url'));
+    }
+}
+
+// Initialize functions on document ready
+$(function () {
+    // ===== MENU BUILDER & OTHER EXISTING FUNCTIONS (omitted for brevity, assuming they are above) ...
+    // This replace fixes the bottom part of the file.
+    initNotifications();
+    initSeoScoreChecker();
+});
+
+// Export functions to global window object
+window.showTagError = showTagError;
+window.clearTagError = clearTagError;
+window.updatePrimaryCategoryRadios = updatePrimaryCategoryRadios;
+window.showToast = showToast;
+window.initDashboardChart = initDashboardChart;
+window.initMenuBuilder = initMenuBuilder;
+window.addMenuItemToStructure = addMenuItemToStructure;
+window.initNotifications = initNotifications;
+window.initSeoScoreChecker = initSeoScoreChecker;

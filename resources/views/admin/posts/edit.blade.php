@@ -85,6 +85,24 @@
                             <input type="text" name="meta_keywords" id="meta_keywords" value="{{ old('meta_keywords') }}"
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
                         </div>
+
+                        <!-- SEO Score Checker -->
+                        <div id="seo-score-container" class="mt-4 border rounded-lg overflow-hidden">
+                            <div id="seo-score-header">
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider">SEO Score Checker</h3>
+                                    <span id="seo-header-score" class="text-xs font-bold text-gray-500">Checking...</span>
+                                </div>
+                                <svg class="w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                            <div id="seo-score-body" class="p-4 bg-white hidden">
+                                <div id="seo-content" class="space-y-3">
+                                    <!-- Content will be injected by JS -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
