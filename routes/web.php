@@ -147,6 +147,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::get('posts/create', [PostController::class, 'create'])->name('posts.create');
     });
 
+    // Notifications
+    Route::group(['prefix' => 'notifications', 'as' => 'notifications.'], function () {
+        Route::get('/', [App\Http\Controllers\Admin\AdminNotificationController::class, 'index'])->name('index');
+        Route::get('/unread', [App\Http\Controllers\Admin\AdminNotificationController::class, 'unread'])->name('unread');
+        Route::get('/count', [App\Http\Controllers\Admin\AdminNotificationController::class, 'getCount'])->name('count');
+        Route::post('/{id}/read', [App\Http\Controllers\Admin\AdminNotificationController::class, 'markAsRead'])->name('mark-as-read');
+        Route::post('/mark-all-read', [App\Http\Controllers\Admin\AdminNotificationController::class, 'markAllAsRead'])->name('mark-all-read');
+    });
+
     // Activity Logs
     Route::prefix('activity-logs')->name('activity-logs.')->group(function () {
         Route::get('/', [App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('index');

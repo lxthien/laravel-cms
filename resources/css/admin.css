@@ -95,3 +95,56 @@
     width: 1.125rem;
     height: 1.125rem;
 }
+
+/* ===== NOTIFICATION STYLES ===== */
+.notification-icon-bg {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+}
+
+.notification-icon {
+    font-size: 0.75rem;
+    color: white;
+}
+
+#notification-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ef4444;
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    border-radius: 9999px;
+    padding: 0 4px;
+    border: 2px solid white;
+}
+
+.mark-read-btn {
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.notification-item:hover .mark-read-btn {
+    opacity: 1;
+}
+
+.unread-indicator {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    background-color: #3b82f6;
+    border-radius: 50%;
+}

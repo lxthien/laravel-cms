@@ -23,6 +23,9 @@ $(document).ready(function () {
 
     // ===== MENU BUILDER HANDLERS =====
     initMenuBuilder();
+
+    // ===== NOTIFICATION SYSTEM =====
+    initNotifications();
 });
 
 /**
@@ -711,3 +714,142 @@ window.showToast = showToast;
 window.initDashboardChart = initDashboardChart;
 window.initMenuBuilder = initMenuBuilder;
 window.addMenuItemToStructure = addMenuItemToStructure;
+window.initNotifications = initNotifications;
+
+/**
+ * ===== NOTIFICATION SYSTEM =====
+ */
+function initNotifications() {
+    var $bellBtn = $('#notification-bell');
+    var $dropdown = $('#notification-dropdown');
+    var $badge = $('#notification-badge');
+    var $list = $('#notification-list');
+    var $markAllBtn = $('#mark-all-read');
+
+    if ($bellBtn.length === 0) return;
+
+    var isOpen = false;
+    var csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+    // Toggle Dropdown
+    $bellBtn.click(function (e) {
+        e.stopPropagation();
+        isOpen = !isOpen;
+        if (isOpen) {
+            $dropdown.removeClass('hidden');
+            loadNotifications();
+        } else {
+            $dropdown.addClass('hidden');
+        }
+    });
+
+    // Close when clicking outside
+    $(document).click(function (e) {
+        if (!$(e.target).closest('#notification-bell, #notification-dropdown').length) {
+            isOpen = false;
+            $dropdown.addClass('hidden');
+        }
+    });
+
+    // Poll for unread count every 30 seconds
+    setInterval(checkUnreadCount, 30000);
+    checkUnreadCount(); // Initial check
+
+    // Check count function
+    function checkUnreadCount() {
+        $.get('/admin/notifications/count', function (data) {
+            updateBadge(data.count);
+        });
+    }
+
+    function updateBadge(count) {
+        if (count > 0) {
+            $badge.text(count > 99 ? '99+' : count).removeClass('hidden');
+        } else {
+            $badge.addClass('hidden');
+        }
+    }
+
+    // Load notifications for dropdown
+    function loadNotifications() {
+        $.get('/admin/notifications/unread', function (data) {
+            $list.empty();
+            updateBadge(data.count);
+
+            if (data.notifications.length === 0) {
+                $list.html('<div class="px-4 py-6 text-center text-gray-400 text-sm">Không có thông báo mới</div>');
+                return;
+            }
+
+            var template = document.getElementById('notification-item-template').content;
+
+            data.notifications.forEach(function (notif) {
+                var clone = document.importNode(template, true);
+                var $item = $(clone).find('.notification-item');
+
+                $item.find('.notification-title').text(notif.title);
+                $item.find('.notification-message').text(notif.message);
+                $item.find('.notification-time').text(notif.time_ago);
+
+                // Icon handling
+                var iconClass = 'fas fa-info';
+                var bgClass = 'bg-blue-500';
+
+                if (notif.type === 'contact') {
+                    iconClass = 'fas fa-envelope';
+                    bgClass = 'bg-orange-500';
+                } else if (notif.type === 'comment') {
+                    iconClass = 'fas fa-comment';
+                    bgClass = 'bg-blue-500';
+                } else if (notif.type === 'user') {
+                    iconClass = 'fas fa-user-plus';
+                    bgClass = 'bg-green-500';
+                }
+
+                $item.find('.notification-icon').addClass(iconClass);
+                $item.find('.notification-icon-bg').addClass(bgClass);
+
+                // Click to view (mark read and navigate)
+                $item.on('click', function (e) {
+                    if (!$(e.target).closest('.mark-read-btn').length) {
+                        markAsRead(notif.id, function () {
+                            window.location.href = notif.link;
+                        });
+                    }
+                });
+
+                // Mark as read button
+                $item.find('.mark-read-btn').click(function (e) {
+                    e.stopPropagation();
+                    markAsRead(notif.id, function () {
+                        $item.fadeOut(200, function () {
+                            $(this).remove();
+                            // Refresh count
+                            checkUnreadCount();
+                            // If empty, show empty state
+                            if ($list.children().length === 0) {
+                                $list.html('<div class="px-4 py-6 text-center text-gray-400 text-sm">Không còn thông báo mới</div>');
+                            }
+                        });
+                    });
+                });
+
+                $list.append($item);
+            });
+        });
+    }
+
+    function markAsRead(id, callback) {
+        $.post('/admin/notifications/' + id + '/read', { _token: csrfToken }, function () {
+            if (callback) callback();
+        });
+    }
+
+    // Mark all as read
+    $markAllBtn.click(function () {
+        $.post('/admin/notifications/mark-all-read', { _token: csrfToken }, function () {
+            $list.html('<div class="px-4 py-6 text-center text-gray-400 text-sm">Không có thông báo mới</div>');
+            updateBadge(0);
+        });
+    });
+}
