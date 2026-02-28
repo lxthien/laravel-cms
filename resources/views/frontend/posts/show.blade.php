@@ -7,21 +7,21 @@
 @section('schema')
     {{-- Breadcrumb Schema --}}
     <script type="application/ld+json">
-            {
-                "@context": "https://schema.org",
-                "@type": "BreadcrumbList",
-                "itemListElement": [
-                    @foreach($breadcrumbs as $index => $breadcrumb)
-                        {
-                            "@type": "ListItem",
-                            "position": {{ $index + 1 }},
-                            "name": "{{ $breadcrumb['title'] }}",
-                            "item": "{{ $breadcrumb['url'] ?: url()->current() }}"
-                        }{{ !$loop->last ? ',' : '' }}
-                    @endforeach
-                ]
-            }
-        </script>
+                {
+                    "@context": "https://schema.org",
+                    "@type": "BreadcrumbList",
+                    "itemListElement": [
+                        @foreach($breadcrumbs as $index => $breadcrumb)
+                            {
+                                "@type": "ListItem",
+                                "position": {{ $index + 1 }},
+                                "name": "{{ $breadcrumb['title'] }}",
+                                "item": "{{ $breadcrumb['url'] ?: url()->current() }}"
+                            }{{ !$loop->last ? ',' : '' }}
+                        @endforeach
+                    ]
+                }
+            </script>
 @endsection
 
 @section('breadcrumb')
@@ -86,14 +86,7 @@
                 placeholder="Nhập nội dung..."></textarea>
             <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Gửi bình luận</button>
         </form>
-        <script>
-            document.querySelectorAll('.reply-btn').forEach(btn => {
-                btn.onclick = function () {
-                    document.getElementById('parent_id').value = btn.getAttribute('data-id');
-                    window.scrollTo(0, document.getElementById('commentForm').offsetTop - 100);
-                }
-            });
-        </script>
+
 
         <h3 class="text-lg font-bold mb-4">Bình luận</h3>
         @include('frontend.partials.comments', ['comments' => $comments])

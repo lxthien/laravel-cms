@@ -11,6 +11,8 @@ export default defineConfig({
             input: [
                 'resources/sass/app.scss',
                 'resources/js/app.js',
+                'resources/sass/frontend.scss',
+                'resources/js/frontend.js',
                 'resources/js/admin.js',
                 'resources/css/ckeditor.css',
                 'resources/js/ckeditor.js',

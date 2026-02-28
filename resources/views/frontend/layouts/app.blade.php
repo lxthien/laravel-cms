@@ -14,15 +14,41 @@
         @yield('schema')
     @endif
 
-    <!-- Styles -->
+    <!-- Fonts & Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Montserrat:wght@600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CDN with custom theme (quick prototype) -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            DEFAULT: '#0f172a', /* slate-900 */
+                            light: '#334155'
+                        },
+                        accent: '#f59e0b' /* amber-500 - construction accent */
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+                        heading: ['Montserrat', 'Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/sass/frontend.scss', 'resources/js/frontend.js'])
 
     @stack('styles')
 </head>
 
-<body class="bg-gray-50">
+<body class="bg-white text-slate-800 font-sans">
     <!-- Header -->
     @include('frontend.partials.header')
 
@@ -30,7 +56,7 @@
     @yield('breadcrumb')
 
     <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8">
+    <main class="max-w-7xl mx-auto px-4 py-8">
         <div class="grid grid-cols-12 gap-6">
             <!-- Content Area -->
             <div class="col-span-12 lg:col-span-8">

@@ -9,7 +9,7 @@
         <!-- Hiển thị replies -->
         @if($comment->replies->count())
             <div class="ml-4">
-                @include('partials.comments', ['comments' => $comment->replies])
+                @include('frontend.partials.comments', ['comments' => $comment->replies])
             </div>
         @endif
     </div>

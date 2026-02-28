@@ -1,0 +1,196 @@
+// ==========================================================================
+// Navigation Menu
+// ==========================================================================
+
+@use 'variables' as *;
+
+.nav-menu {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    .nav-item {
+        position: relative;
+
+        &:hover>.nav-dropdown {
+            display: block;
+            animation: fadeInTop 0.2s ease forwards;
+        }
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        color: $color-white;
+        font-size: 0.875rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        text-decoration: none;
+        transition: color $transition-fast, background $transition-fast;
+
+        &:hover {
+            color: $color-accent;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        &.is-active {
+            color: $color-accent;
+            background: rgba(255, 255, 255, 0.1);
+        }
+    }
+
+    .nav-arrow {
+        width: 1rem;
+        height: 1rem;
+        opacity: 0.5;
+        transition: transform $transition-base;
+    }
+
+    .nav-item:hover>.nav-link .nav-arrow {
+        transform: rotate(180deg);
+    }
+}
+
+// ── Dropdown ────────────────────────────────────────────────────────────
+.nav-dropdown {
+    position: absolute;
+    left: 0;
+    top: 100%;
+    display: none;
+    min-width: 13.75rem; // 220px
+    background: $color-white;
+    box-shadow: $shadow-lg;
+    border: 1px solid $color-border;
+    border-radius: $radius-md;
+    padding: 0.5rem 0;
+    z-index: 50;
+    list-style: none;
+}
+
+.nav-dropdown-item {
+    position: relative;
+
+    &.has-children:hover>.nav-dropdown-submenu {
+        display: block;
+        animation: fadeInLeft 0.2s ease forwards;
+    }
+}
+
+.nav-dropdown-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    color: $color-text;
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: color $transition-fast, background $transition-fast;
+
+    &:hover {
+        color: $color-accent;
+        background: $color-bg-light;
+    }
+
+    &.is-active {
+        color: $color-accent;
+        background: rgba(220, 76, 4, 0.05);
+    }
+
+    .nav-dropdown-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .nav-dropdown-icon {
+        opacity: 0.7;
+    }
+
+    .nav-dropdown-arrow {
+        width: 1rem;
+        height: 1rem;
+        opacity: 0.5;
+        transition: transform $transition-fast;
+    }
+
+    &:hover .nav-dropdown-arrow {
+        transform: rotate(-90deg);
+    }
+}
+
+.nav-dropdown-submenu {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    display: none;
+    min-width: 12.5rem; // 200px
+    background: $color-white;
+    box-shadow: $shadow-lg;
+    border: 1px solid $color-border;
+    border-radius: $radius-md;
+    padding: 0.5rem 0;
+    z-index: 60;
+    list-style: none;
+}
+
+// ── Mobile Menu ─────────────────────────────────────────────────────────
+.nav-menu-mobile {
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    .nav-item {
+        width: 100%;
+    }
+
+    .nav-link {
+        padding: 0.75rem 1rem;
+    }
+
+    .nav-dropdown {
+        position: static;
+        box-shadow: none;
+        border: none;
+        border-left: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0;
+        background: transparent;
+        padding: 0 0 0 1rem;
+        display: none;
+    }
+
+    .nav-item:hover>.nav-dropdown {
+        display: block;
+    }
+}
+
+// ── Animations ────────────────────────────────────────────────────────────
+@keyframes fadeInTop {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}

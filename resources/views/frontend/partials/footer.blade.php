@@ -1,37 +1,35 @@
-<footer class="bg-gray-800 text-white mt-12">
-    <div class="container mx-auto px-4 py-8">
+<footer class="bg-primary text-white mt-12">
+    <div class="max-w-7xl mx-auto px-4 py-10">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <!-- About -->
             <div>
-                <h3 class="text-xl font-bold mb-4">Về Chúng Tôi</h3>
-                <p class="text-gray-300">
-                    Website tin tức công nghệ hàng đầu Việt Nam, cập nhật tin tức mới nhất về Laravel, PHP và công nghệ web.
-                </p>
+                <a href="{{ route('home') }}" class="flex items-center gap-3 mb-4">
+                    <img src="{{ asset('images/logo-white.png') }}" alt="{{ config('app.name') }}" class="h-10">
+                    <span class="font-heading text-xl">{{ config('app.name') }}</span>
+                </a>
+                <p class="text-slate-200">Chúng tôi cung cấp giải pháp xây dựng trọn gói: thiết kế, thi công và giám sát thi công. Uy tín - Chất lượng - An toàn.</p>
             </div>
-            
-            <!-- Quick Links -->
+
             <div>
-                <h3 class="text-xl font-bold mb-4">Liên Kết</h3>
-                <ul class="space-y-2">
-                    <li><a href="{{ route('home') }}" class="text-gray-300 hover:text-white">Trang Chủ</a></li>
-                    <li><a href="#" class="text-gray-300 hover:text-white">Về Chúng Tôi</a></li>
-                    <li><a href="#" class="text-gray-300 hover:text-white">Liên Hệ</a></li>
-                    <li><a href="#" class="text-gray-300 hover:text-white">Chính Sách</a></li>
+                <h3 class="text-lg font-semibold mb-4">Dịch Vụ</h3>
+                <ul class="space-y-2 text-slate-200">
+                    <li><a href="#" class="hover:underline">Thiết kế kiến trúc</a></li>
+                    <li><a href="#" class="hover:underline">Thi công xây dựng</a></li>
+                    <li><a href="#" class="hover:underline">Hoàn thiện nội thất</a></li>
+                    <li><a href="#" class="hover:underline">Tư vấn và giám sát</a></li>
                 </ul>
             </div>
-            
-            <!-- Contact -->
+
             <div>
-                <h3 class="text-xl font-bold mb-4">Liên Hệ</h3>
-                <ul class="space-y-2 text-gray-300">
-                    <li>Email: contact@example.com</li>
-                    <li>Phone: 0123 456 789</li>
-                    <li>Address: Hà Nội, Việt Nam</li>
+                <h3 class="text-lg font-semibold mb-4">Liên Hệ</h3>
+                <ul class="space-y-2 text-slate-200">
+                    <li>Email: <a href="mailto:{{ setting('email', 'contact@example.com') }}" class="hover:underline">{{ setting('email', 'contact@example.com') }}</a></li>
+                    <li>Hotline: <a href="tel:{{ setting('phone', '0123456789') }}" class="hover:underline">{{ setting('phone', '0123 456 789') }}</a></li>
+                    <li>Địa chỉ: {{ setting('address', 'Hà Nội, Việt Nam') }}</li>
                 </ul>
             </div>
         </div>
-        
-        <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+
+        <div class="border-t border-primary/60 mt-8 pt-6 text-center text-slate-300">
             <p>&copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.</p>
         </div>
     </div>

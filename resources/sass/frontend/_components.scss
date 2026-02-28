@@ -1,0 +1,47 @@
+// ==========================================================================
+// Shared Components – Cards, Breadcrumbs, Widgets, Comments
+// ==========================================================================
+
+@use 'variables' as *;
+
+// ── Cards ─────────────────────────────────────────────────────────────────
+.card-hover {
+    transition: box-shadow $transition-base, transform $transition-base;
+
+    &:hover {
+        box-shadow: $shadow-lg;
+        transform: translateY(-1px);
+    }
+}
+
+// ── Breadcrumb ────────────────────────────────────────────────────────────
+.breadcrumb-separator {
+    margin: 0 0.5rem;
+    color: #94a3b8;
+}
+
+// ── Sidebar Widgets ───────────────────────────────────────────────────────
+.widget+.widget {
+    margin-top: 1.5rem;
+}
+
+// ── Comment Thread ────────────────────────────────────────────────────────
+.comment-thread {
+    border-left: 2px solid $color-border;
+    padding-left: 0.75rem;
+    margin-bottom: 1rem;
+
+    .reply-btn {
+        cursor: pointer;
+        background: none;
+        border: none;
+        color: $color-link;
+        font-size: 0.75rem;
+        padding: 0;
+        transition: text-decoration $transition-fast;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}

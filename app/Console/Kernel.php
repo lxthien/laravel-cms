@@ -22,6 +22,13 @@ class Kernel extends ConsoleKernel
     {
         $this->load(__DIR__.'/Commands');
 
+        // Register custom maintenance commands
+        if (class_exists(\App\Console\Commands\FixActivityLogChanges::class)) {
+            $this->commands([
+                \App\Console\Commands\FixActivityLogChanges::class,
+            ]);
+        }
+
         require base_path('routes/console.php');
     }
 }

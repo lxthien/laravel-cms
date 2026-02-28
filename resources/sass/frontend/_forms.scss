@@ -1,0 +1,21 @@
+// ==========================================================================
+// Form Elements
+// ==========================================================================
+
+@use 'variables' as *;
+
+.form-input,
+.form-textarea {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: $radius-md;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9375rem;
+    transition: border-color $transition-fast, box-shadow $transition-fast;
+
+    &:focus {
+        outline: none;
+        border-color: $color-link;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+}

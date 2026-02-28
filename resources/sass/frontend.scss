@@ -1,0 +1,13 @@
+// ==========================================================================
+// Frontend Stylesheet Entry Point – Laravel CMS
+// ==========================================================================
+
+// Variables (must be first)
+@use 'frontend/variables' as *;
+
+// Component partials
+@use 'frontend/header';
+@use 'frontend/menu';
+@use 'frontend/typography';
+@use 'frontend/forms';
+@use 'frontend/components';

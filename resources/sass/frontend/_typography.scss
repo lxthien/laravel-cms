@@ -1,0 +1,39 @@
+// ==========================================================================
+// Typography & Prose Content
+// ==========================================================================
+
+@use 'variables' as *;
+
+.prose {
+    img {
+        border-radius: $radius-md;
+        margin-top: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    a {
+        color: $color-link;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+
+        &:hover {
+            color: $color-link-hover;
+        }
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+
+        th,
+        td {
+            border: 1px solid $color-border;
+            padding: 0.5rem 0.75rem;
+        }
+
+        th {
+            background: $color-bg-light;
+            font-weight: 600;
+        }
+    }
+}

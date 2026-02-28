@@ -67,6 +67,23 @@
 <script type="application/ld+json">
 {!! json_encode($getStructuredData(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
 </script>
+{{-- Basic LocalBusiness JSON-LD fallback to help SEO for construction company --}}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "{{ setting('site_name', config('app.name')) }}",
+    "url": "{{ url('/') }}",
+    "telephone": "{{ setting('phone', '') }}",
+    "email": "{{ setting('email', '') }}",
+    "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "{{ setting('address', '') }}"
+    },
+    "logo": "{{ asset('favicon.png') }}",
+    "sameAs": []
+}
+</script>
 {{-- Alternate Languages (if multilingual) --}}
 @if(config('app.locales'))
     @foreach(config('app.locales') as $locale => $name)

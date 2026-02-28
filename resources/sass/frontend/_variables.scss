@@ -1,0 +1,38 @@
+// ==========================================================================
+// Frontend Variables
+// ==========================================================================
+
+// Colors
+$color-primary-dark: #1a1a1b;
+$color-accent: #dc4c04;
+$color-accent-hover: #c44303;
+$color-white: #ffffff;
+$color-text: #1e293b; // slate-800
+$color-text-light: #64748b; // slate-500
+$color-border: #e2e8f0; // slate-200
+$color-bg-light: #f8fafc; // slate-50
+$color-link: #2563eb; // blue-600
+$color-link-hover: #1d4ed8; // blue-700
+
+// Typography
+$font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+$font-heading: 'Montserrat', 'Inter', sans-serif;
+
+// Layout
+$container-max: 1280px; // max-w-7xl
+$container-pad: 1rem;
+
+// Transitions
+$transition-fast: 0.15s ease;
+$transition-base: 0.2s ease;
+
+// Shadows
+$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+$shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 10px -5px rgba(0, 0, 0, 0.04);
+
+// Border radius
+$radius-sm: 0.375rem;
+$radius-md: 0.5rem;
+$radius-lg: 0.75rem;
+$radius-full: 9999px;
