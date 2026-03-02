@@ -4,24 +4,33 @@
     :image="$page->featured_image ? asset('storage/' . $page->featured_image) : null" robots="index, follow"
     type="website" />
 
+@push('body-class', 'layout-landing')
+@section('full-width', true)
+
 @section('breadcrumb')
-    @include('frontend.partials._breadcrumb', ['breadcrumbs' => $breadcrumbs])
+    <div class="max-w-[1200px] mx-auto px-4 mt-4">
+        @include('frontend.partials._breadcrumb', ['breadcrumbs' => $breadcrumbs])
+    </div>
 @endsection
 
 @section('content')
-    <!-- Page Content -->
-    <article class="prose lg:prose-xl mx-auto bg-white p-6 md:p-8 shadow-sm rounded-lg">
-        <h1 class="text-3xl md:text-4xl font-bold mb-6 text-gray-900">{{ $page->title }}</h1>
+    <!-- Landing Page Structure (Max width 1200px equivalent to max-w-7xl) -->
+    <div class="landing-container">
+        <!-- Hero Title Section -->
+        <header class="landing-hero">
+            <h1 class="landing-title">{{ $page->title }}</h1>
+        </header>
 
         @if($page->featured_image)
-            <div class="mb-8">
+            <div class="mb-4 text-center">
                 <img src="{{ Storage::url($page->featured_image) }}" alt="{{ $page->title }}"
-                    class="w-full h-auto rounded-lg shadow-md">
+                    class="mx-auto rounded-lg shadow-md max-h-[500px] object-cover">
             </div>
         @endif
 
-        <div class="content">
+        <!-- Prose Content Styled by _landing.scss -->
+        <article class="landing-prose">
             {!! $page->content !!}
-        </div>
-    </article>
+        </article>
+    </div>
 @endsection

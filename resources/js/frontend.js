@@ -12,3 +12,5 @@ window.$ = window.jQuery;
 import './modules/search-suggestions';
 import './modules/comment-reply';
 import './modules/mobile-menu';
+import './modules/youtube-modal';
+import './modules/back-to-top';

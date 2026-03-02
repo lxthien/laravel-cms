@@ -2,6 +2,9 @@
  * Comment Reply Module (jQuery)
  * Click "Trả lời" → set parent_id, scroll to comment form.
  */
+
+import $ from 'jquery';
+
 $(function () {
     $(document).on('click', '.reply-btn', function () {
         var parentId = $(this).data('id');

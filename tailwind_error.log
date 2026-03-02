@@ -1,0 +1,60 @@
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+  Γò╖
+5 Γöé @import 'variables';
+  Γöé         ^^^^^^^^^^^
+  Γò╡
+    resources\sass\app.scss 5:9  root stylesheet
+
+DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+  Γò╖
+8 Γöé @import 'bootstrap/scss/bootstrap';
+  Γöé         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  Γò╡
+    resources\sass\app.scss 8:9  root stylesheet
+
+[32mΓ£ô[39m 26 modules transformed.
+x Build failed in 803ms
+error during build:
+[vite:css] [sass] @use rules must be written before any other rules.
+   Γò╖
+10 Γöé @use 'frontend/variables' as *;
+   Γöé ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   Γò╡
+  resources\sass\frontend.scss 10:1  root stylesheet
+file: C:\xampp81\htdocs\cms-website\resources\sass\frontend.scss
+
+Error: @use rules must be written before any other rules.
+   Γò╖
+10 Γöé @use 'frontend/variables' as *;
+   Γöé ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   Γò╡
+  resources\sass\frontend.scss 10:1  root stylesheet
+
+Error: @use rules must be written before any other rules.
+   Γò╖
+10 Γöé @use 'frontend/variables' as *;
+   Γöé ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   Γò╡
+  resources\sass\frontend.scss 10:1  root stylesheet
+    at Object.wrapException (C:\xampp81\htdocs\cms-website\node_modules\sass\sass.dart.js:2316:47)
+    at ScssParser0.error$3 (C:\xampp81\htdocs\cms-website\node_modules\sass\sass.dart.js:114382:17)
+    at ScssParser0.error$2 (C:\xampp81\htdocs\cms-website\node_modules\sass\sass.dart.js:114387:19)
+    at ScssParser0.atRule$2$root (C:\xampp81\htdocs\cms-website\node_modules\sass\sass.dart.js:120558:19)
+    at ScssParser0._stylesheet0$_statement$1$root (C:\xampp81\htdocs\cms-website\node_modules\sass\sass.dart.js:120155:22)
+    at StylesheetParser_parse__closure0.call$0 (C:\xampp81\htdocs\cms-website\node_modules\sass\sass.dart.js:123790:17)
+    at ScssParser0.statements$1 (C:\xampp81\htdocs\cms-website\node_modules\sass\sass.dart.js:115813:30)
+    at StylesheetParser_parse_closure0.call$0 (C:\xampp81\htdocs\cms-website\node_modules\sass\sass.dart.js:123776:23)
+    at ScssParser0.wrapSpanFormatException$1$1 (C:\xampp81\htdocs\cms-website\node_modules\sass\sass.dart.js:114413:25)
+    at ScssParser0.wrapSpanFormatException$1 (C:\xampp81\htdocs\cms-website\node_modules\sass\sass.dart.js:114470:19)

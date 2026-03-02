@@ -2,6 +2,9 @@
  * Search Suggestions Module (jQuery)
  * Gợi ý tìm kiếm khi nhập từ khóa vào ô search header.
  */
+
+import $ from 'jquery';
+
 $(function () {
     var $input = $('#header-search-input');
     var $container = $('#search-suggestions');

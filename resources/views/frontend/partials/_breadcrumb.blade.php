@@ -1,18 +1,35 @@
 @if (!empty($breadcrumbs))
-<nav class="text-sm text-gray-500 py-3">
-    <ol class="list-none p-0 inline-flex">
-        @foreach ($breadcrumbs as $i => $crumb)
-            @if ($i < count($breadcrumbs) - 1)
+    <nav class="breadcrumb-container py-4" aria-label="Breadcrumb">
+        <ol class="flex flex-wrap items-center list-none p-0 text-sm">
+            <li class="flex items-center">
+                <a href="{{ url('/') }}"
+                    class="text-gray-400 hover:text-accent transition-colors duration-200 flex items-center"
+                    title="Trang chủ">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                            d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z">
+                        </path>
+                    </svg>
+                </a>
+            </li>
+            @foreach ($breadcrumbs as $i => $crumb)
                 <li class="flex items-center">
-                    <a href="{{ $crumb['url'] }}" class="hover:text-blue-600">{{ $crumb['title'] }}</a>
-                    <span class="mx-2">/</span>
+                    <svg class="w-5 h-5 text-gray-300 mx-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                    @if ($i < count($breadcrumbs) - 1)
+                        <a href="{{ $crumb['url'] }}" class="text-gray-500 hover:text-accent transition-colors duration-200">
+                            {{ $crumb['title'] }}
+                        </a>
+                    @else
+                        <span class="text-slate-800 font-semibold" aria-current="page">
+                            {{ $crumb['title'] }}
+                        </span>
+                    @endif
                 </li>
-            @else
-                <li class="flex items-center text-gray-700 font-semibold">
-                    {{ $crumb['title'] }}
-                </li>
-            @endif
-        @endforeach
-    </ol>
-</nav>
+            @endforeach
+        </ol>
+    </nav>
 @endif

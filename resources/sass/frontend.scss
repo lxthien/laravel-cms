@@ -9,5 +9,12 @@
 @use 'frontend/header';
 @use 'frontend/menu';
 @use 'frontend/typography';
+@use 'frontend/landing';
+@use 'frontend/footer';
+@use 'frontend/home';
 @use 'frontend/forms';
 @use 'frontend/components';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

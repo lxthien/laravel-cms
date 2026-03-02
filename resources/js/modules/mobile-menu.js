@@ -2,6 +2,9 @@
  * Mobile Menu Toggle Module (jQuery)
  * Hamburger menu open/close on mobile.
  */
+
+import $ from 'jquery';
+
 $(function () {
     var $toggle = $('#mobile-menu-toggle');
     var $menu = $('#mobile-menu');
